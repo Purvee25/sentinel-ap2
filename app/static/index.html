@@ -55,19 +55,20 @@
   .env i { width: 7px; height: 7px; border-radius: 50%; background: #5cd6a0; }
 
   /* the headline number row — the whole thesis in one line */
-  .scoreboard { display: flex; gap: 40px; padding: 20px 0 22px; flex-wrap: wrap; }
+  .scoreboard { display: flex; gap: 56px; padding: 26px 0 30px; flex-wrap: wrap; }
   .stat .lab {
-    font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase;
-    color: #7f93ad; font-weight: 600; margin-bottom: 5px;
+    font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: #8ba0ba; font-weight: 700; margin-bottom: 9px;
   }
   .stat .val {
-    font-family: var(--mono); font-size: 27px; font-weight: 600; letter-spacing: -0.02em;
-    line-height: 1.1;
+    font-family: var(--mono); font-size: 46px; font-weight: 600; letter-spacing: -0.03em;
+    line-height: 1.05;
   }
   .stat.attempted .val { color: #fff; }
   .stat.blocked .val { color: #ff8b80; }
   .stat.allowed .val { color: #5cd6a0; }
-  .stat .note { font-size: 12px; color: #7f93ad; margin-top: 4px; }
+  .stat .note { font-size: 13.5px; color: #8ba0ba; margin-top: 8px; }
+  @media (max-width: 1100px) { .stat .val { font-size: 36px; } .scoreboard { gap: 36px; } }
 
   main {
     display: grid; grid-template-columns: 376px minmax(0, 1fr); gap: 20px;

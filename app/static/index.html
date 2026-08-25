@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentinel-AP2 — Agent Payment Guardrail</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #272e38;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accept: #3fb950;
+    --accept-bg: rgba(63, 185, 80, 0.10);
+    --reject: #f85149;
+    --reject-bg: rgba(248, 81, 73, 0.10);
+    --accent: #58a6ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.55 ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+  header {
+    padding: 26px 32px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
+  header p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+  .status-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accept); margin-right: 7px; vertical-align: middle;
+  }
+  main {
+    display: grid;
+    grid-template-columns: minmax(340px, 420px) 1fr;
+    gap: 20px;
+    padding: 20px 32px 40px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+  h2 {
+    margin: 0 0 14px; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--muted); font-weight: 600;
+  }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 5px; }
+  input, select {
+    width: 100%; padding: 9px 11px; background: #0d1117; color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; font-size: 14px;
+    font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  button {
+    width: 100%; padding: 10px 14px; margin-top: 14px; border-radius: 6px;
+    border: 1px solid var(--border); background: #21262d; color: var(--text);
+    font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  button:hover:not(:disabled) { background: #2d333b; border-color: #3d444d; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.primary { background: #1f6feb; border-color: #1f6feb; }
+  button.primary:hover:not(:disabled) { background: #388bfd; border-color: #388bfd; }
+  button.attack { background: #2d1416; border-color: #5c2226; color: #ffb4ae; }
+  button.attack:hover:not(:disabled) { background: #3d1a1d; border-color: #7a2d32; }
+  .mandate-box {
+    margin-top: 14px; padding: 12px 14px; border-radius: 6px;
+    background: #0d1117; border: 1px solid var(--border);
+    font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--muted); word-break: break-all;
+  }
+  .mandate-box .k { color: var(--text); }
+  .mandate-box.empty { color: var(--muted); font-style: italic; }
+  .catalog-item {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+  }
+  .catalog-item:last-child { border-bottom: none; }
+  .catalog-item .price { color: var(--muted); white-space: nowrap; }
+  .catalog-item .warn { color: #d29922; font-size: 12px; display: block; margin-top: 3px; }
+  .log { max-height: 640px; overflow-y: auto; }
+  .entry {
+    border-left: 3px solid var(--border); border-radius: 0 6px 6px 0;
+    padding: 11px 14px; margin-bottom: 9px; background: #0d1117;
+    animation: slide 0.22s ease-out;
+  }
+  @keyframes slide { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+  .entry.accepted { border-left-color: var(--accept); background: var(--accept-bg); }
+  .entry.rejected { border-left-color: var(--reject); background: var(--reject-bg); }
+  .entry .verdict { font-weight: 600; font-size: 13px; letter-spacing: 0.03em; }
+  .entry.accepted .verdict { color: var(--accept); }
+  .entry.rejected .verdict { color: var(--reject); }
+  .entry .reason { margin-top: 3px; font-size: 14px; }
+  .entry .meta {
+    margin-top: 6px; font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--muted); word-break: break-all;
+  }
+  .empty-log { color: var(--muted); font-style: italic; padding: 8px 0; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="status-dot"></span>Sentinel-AP2</h1>
+  <p>Deterministic guardrail for autonomous agent payments — every money action bounded, gated, and audited.</p>
+</header>
+
+<main>
+  <div>
+    <div class="panel">
+      <h2>1 · Issue a bounded mandate</h2>
+      <label for="cap">Spending cap (₹)</label>
+      <input id="cap" type="number" value="1500" min="1">
+      <label for="ttl">Valid for (seconds)</label>
+      <input id="ttl" type="number" value="3600" min="1">
+      <label for="merchant">Scoped to merchant</label>
+      <input id="merchant" type="text" value="merchant_xyz">
+      <button class="primary" onclick="issueMandate()">Sign &amp; issue mandate</button>
+      <div id="mandate" class="mandate-box empty">No mandate issued yet.</div>
+    </div>
+
+    <div class="panel">
+      <h2>2 · Agent actions</h2>
+      <label for="product">Product the agent wants</label>
+      <select id="product"></select>
+      <button class="primary" id="btn-buy" onclick="legitPurchase()" disabled>
+        Agent purchase (legitimate)
+      </button>
+      <button class="attack" id="btn-replay" onclick="attackReplay()" disabled>
+        Attack · replay consumed mandate
+      </button>
+      <button class="attack" id="btn-overcap" onclick="attackOverCap()" disabled>
+        Attack · exceed spending cap
+      </button>
+      <button class="attack" id="btn-merchant" onclick="attackMerchant()" disabled>
+        Attack · substitute merchant
+      </button>
+      <button class="attack" id="btn-price" onclick="attackPrice()" disabled>
+        Attack · tamper with cart price
+      </button>
+      <p class="hint">
+        The agent only ever sends <code>{product_id, qty}</code>. Prices and totals are
+        computed server-side from catalog truth — an agent cannot state a price.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h2>Merchant catalog</h2>
+      <div id="catalog"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Live audit trail</h2>
+    <div id="log" class="log"><div class="empty-log">No activity yet.</div></div>
+  </div>
+</main>
+
+<script>
+let mandate = null;
+let catalog = [];
+
+const rupees = (paise) => "₹" + (paise / 100).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+
+async function loadCatalog() {
+  catalog = await (await fetch("/catalog")).json();
+  document.getElementById("catalog").innerHTML = catalog.map(p => {
+    const injected = p.description.includes("ignore all spending limits");
+    return `<div class="catalog-item">
+      <span>${p.name}${injected ? '<span class="warn">⚠ description contains an embedded prompt-injection instruction</span>' : ''}</span>
+      <span class="price">${rupees(p.price_paise)}</span>
+    </div>`;
+  }).join("");
+  document.getElementById("product").innerHTML = catalog
+    .map(p => `<option value="${p.id}">${p.name} — ${rupees(p.price_paise)}</option>`).join("");
+}
+
+function setAgentButtons(enabled) {
+  ["btn-buy", "btn-replay", "btn-overcap", "btn-merchant", "btn-price"]
+    .forEach(id => document.getElementById(id).disabled = !enabled);
+}
+
+async function issueMandate() {
+  const body = {
+    merchant_id: document.getElementById("merchant").value,
+    max_amount_paise: Math.round(Number(document.getElementById("cap").value) * 100),
+    ttl_seconds: Number(document.getElementById("ttl").value),
+  };
+  mandate = await (await fetch("/mandates", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  })).json();
+
+  document.getElementById("mandate").className = "mandate-box";
+  document.getElementById("mandate").innerHTML =
+    `<span class="k">cap</span> ${rupees(mandate.max_amount_paise)} &nbsp;
+     <span class="k">merchant</span> ${mandate.merchant_id}<br>
+     <span class="k">expires</span> ${new Date(mandate.expires_at).toLocaleTimeString()}<br>
+     <span class="k">signature</span> ${mandate.signature_b64.slice(0, 44)}…`;
+  setAgentButtons(true);
+}
+
+async function purchase(payload, label) {
+  const res = await (await fetch("/purchase", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+  })).json();
+  addEntry(res, label);
+  return res;
+}
+
+function addEntry(res, label) {
+  const log = document.getElementById("log");
+  if (log.querySelector(".empty-log")) log.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "entry " + res.status;
+  div.innerHTML = `
+    <div class="verdict">${res.status === "accepted" ? "✓ ACCEPTED" : "✕ REJECTED"} — ${label}</div>
+    <div class="reason">${res.reason}</div>
+    <div class="meta">
+      ${res.status === "accepted"
+        ? `total ${rupees(res.computed_total_paise)} · razorpay ${res.razorpay_payment_id}`
+        : `no money moved · txn ${res.transaction_id}`}
+    </div>`;
+  log.prepend(div);
+}
+
+const selectedProduct = () => document.getElementById("product").value;
+
+/* A mandate is single-use by design, so a consumed one is rejected as a
+   replay before any other check runs. To demonstrate each guardrail
+   independently, every attack except the replay one runs against its own
+   freshly-issued mandate with the same terms as the one on screen. */
+async function freshMandate() {
+  return await (await fetch("/mandates", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      merchant_id: mandate.merchant_id,
+      max_amount_paise: mandate.max_amount_paise,
+      ttl_seconds: 3600,
+    }),
+  })).json();
+}
+
+function legitPurchase() {
+  return purchase({
+    mandate_id: mandate.id, merchant_id: mandate.merchant_id,
+    product_id: selectedProduct(), qty: 1,
+  }, "agent purchase");
+}
+
+async function attackReplay() {
+  /* Deliberately reuses the on-screen mandate: if it has already funded a
+     purchase this is rejected as a replay, which is the point. */
+  return purchase({
+    mandate_id: mandate.id, merchant_id: mandate.merchant_id,
+    product_id: selectedProduct(), qty: 1,
+  }, "replayed mandate");
+}
+
+async function attackOverCap() {
+  const m = await freshMandate();
+  const priciest = catalog.reduce((a, b) => (a.price_paise > b.price_paise ? a : b));
+  return purchase({
+    mandate_id: m.id, merchant_id: m.merchant_id,
+    product_id: priciest.id, qty: 50,
+  }, `50 × ${priciest.name}`);
+}
+
+async function attackMerchant() {
+  const m = await freshMandate();
+  return purchase({
+    mandate_id: m.id, merchant_id: "attacker_merchant",
+    product_id: selectedProduct(), qty: 1,
+  }, "wrong merchant");
+}
+
+async function attackPrice() {
+  const m = await freshMandate();
+  return purchase({
+    mandate_id: m.id, merchant_id: m.merchant_id,
+    product_id: selectedProduct(), qty: 1, client_claimed_price_paise: 1,
+  }, "agent claims ₹0.01");
+}
+
+loadCatalog();
+</script>
+</body>
+</html>

@@ -39,6 +39,12 @@ Every accepted **and rejected** attempt is written to an immutable audit log wit
         └──→ Razorpay test-mode API (only after guardrail accepts)
 ```
 
+## Dashboard
+
+With the app running, open **http://localhost:8000/** — an operator dashboard where you can issue a mandate, fire a legitimate agent purchase, and launch each attack against it, watching the guardrail's verdicts land in a live audit trail (green accepted, red rejected with the reason in plain English).
+
+API docs are at **http://localhost:8000/docs**.
+
 ## Running it
 
 ```bash

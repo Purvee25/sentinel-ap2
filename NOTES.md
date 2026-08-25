@@ -20,9 +20,9 @@ Kept live during the build — this is the field the buildathon submission form 
 
 **Fix:** the test calls `create_signed_mandate()` directly (bypassing the API's TTL validation, which is a request-shape concern, not a signing concern) with a negative TTL, producing a *validly signed* but already-expired mandate, then inserts it into the DB directly. This isolates "expired" from "tampered" as two genuinely separate, independently-tested failure modes — which also forced us to notice they're separate guardrail checks in the actual engine (expiry is checked before signature-independent logic, but both exist).
 
-## 3. Docker build not verified in this environment
+## 3. Docker build
 
-Docker Desktop's daemon wasn't running in the environment this was built in, so `docker compose build` was never actually executed here. The `Dockerfile`/`docker-compose.yml` follow a standard, tested pattern (slim base, non-root user, healthcheck), but **run `docker compose up --build` yourself before recording the pitch video** to confirm it end-to-end — don't take this file's word for it.
+Verified: `docker compose up --build` builds cleanly and serves real traffic — `/health`, `/catalog`, and the full `scripts/demo_agent.py` run (1 accepted purchase, 3 live attacks rejected) all pass against the containerized instance, not just the local venv.
 
 ## What we'd do with another week
 

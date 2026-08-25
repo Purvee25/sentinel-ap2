@@ -91,6 +91,8 @@ This is the script the pitch video walks through: 1 accepted purchase, 3 live at
 - No real user auth system — one demo mandate-issuer is enough to prove the enforcement model
 - Not a spec-compliant implementation of AP2/ACP/UAP — modeled on their bounded-mandate pattern, not certified against any of them
 
+`docker compose up --build` is verified working end-to-end: builds clean, serves `/health` and `/catalog`, and `scripts/demo_agent.py` passes against the containerized instance.
+
 ## Repo layout
 
 ```

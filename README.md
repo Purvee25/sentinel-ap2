@@ -4,6 +4,33 @@ A guardrail layer that sits between an AI agent and a payment gateway, so the ag
 
 Built for the [Razorpay AI Buildathon](https://razorpay.com/buildathon/), Track 01.
 
+---
+
+**One session, five purchase requests, one ₹1,500 mandate:**
+
+```
+agent attempted    ₹3,03,546.00     5 requests
+blocked            ₹3,02,647.00     4 refused at the guardrail
+actually charged   ₹      899.00     the one legitimate purchase
+```
+
+Each rejection died at a different check, and nothing downstream of it ran:
+
+```
+                    signature  single-use  expiry  merchant  price   cap    pay
+agent purchase          ✓          ✓         ✓        ✓        ✓      ✓     ₹899
+replayed mandate        ✓          ✕         ·        ·        ·      ·      ·
+50 × earbuds            ✓          ✓         ✓        ✓        ✓      ✕      ·
+merchant swap           ✓          ✓         ✓        ✕        ·      ·      ·
+price tampering         ✓          ✓         ✓        ✓        ✕      ·      ·
+```
+
+The `50 × earbuds` row is the interesting one. That product's description contains an
+instruction telling any agent reading it to ignore its spending limits. It failed on
+arithmetic — `29995000 > 150000` — without anything having read the text.
+
+---
+
 ## Why
 
 AI agents are starting to buy things, not just answer questions. AP2, ACP and NPCI's UAP are all working out how an agent gets *authorized* to spend your money.

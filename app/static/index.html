@@ -6,7 +6,7 @@
 <title>Sentinel-AP2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   /* Palette sampled from razorpay.com so this sits visually alongside the
      dashboard it talks to. Not affiliated with or endorsed by Razorpay. */
@@ -15,7 +15,6 @@
     --blue-dark: #2950DA;
     --blue-wash: #eef3ff;
     --navy: #132644;
-    --navy-2: #192839;
     --slate: #40566D;
     --slate-2: #7b8ca0;
     --bg: #f0f4f6;
@@ -39,10 +38,8 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  header {
-    background: var(--navy); color: #fff;
-    padding: 16px 32px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  }
+  header { background: var(--navy); color: #fff; padding: 16px 32px 0; }
+  .bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .mark {
     width: 30px; height: 30px; border-radius: 7px; background: var(--blue);
     display: grid; place-items: center; font-weight: 700; font-size: 15px; flex: none;
@@ -57,6 +54,21 @@
   }
   .env i { width: 7px; height: 7px; border-radius: 50%; background: #5cd6a0; }
 
+  /* the headline number row — the whole thesis in one line */
+  .scoreboard { display: flex; gap: 40px; padding: 20px 0 22px; flex-wrap: wrap; }
+  .stat .lab {
+    font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase;
+    color: #7f93ad; font-weight: 600; margin-bottom: 5px;
+  }
+  .stat .val {
+    font-family: var(--mono); font-size: 27px; font-weight: 600; letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .stat.attempted .val { color: #fff; }
+  .stat.blocked .val { color: #ff8b80; }
+  .stat.allowed .val { color: #5cd6a0; }
+  .stat .note { font-size: 12px; color: #7f93ad; margin-top: 4px; }
+
   main {
     display: grid; grid-template-columns: 376px minmax(0, 1fr); gap: 20px;
     padding: 22px 32px 56px; align-items: start; max-width: 1520px;
@@ -65,8 +77,7 @@
 
   .card {
     background: var(--surface); border: 1px solid var(--line);
-    border-radius: 8px; margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(19,38,68,.05);
+    border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(19,38,68,.05);
   }
   .card > h2 {
     margin: 0; padding: 14px 18px; border-bottom: 1px solid var(--line-soft);
@@ -85,9 +96,7 @@
     width: 100%; padding: 9px 12px; font: inherit; color: var(--navy);
     background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
   }
-  input:focus, select:focus {
-    outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(48,94,255,.14);
-  }
+  input:focus, select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(48,94,255,.14); }
 
   button {
     width: 100%; padding: 10px 14px; margin-top: 12px; cursor: pointer;
@@ -108,7 +117,6 @@
     font-family: var(--mono); font-size: 12.5px; line-height: 1.8;
   }
   .receipt .k { color: var(--slate-2); display: inline-block; min-width: 78px; }
-  .receipt .v { color: var(--navy); }
   .receipt.empty { color: var(--slate-2); font-family: Inter, sans-serif; font-size: 13.5px; }
 
   .item {
@@ -126,7 +134,20 @@
   .hint { margin: 14px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--slate-2); }
   .hint code { font-family: var(--mono); font-size: 12px; color: var(--slate); }
 
-  #log { padding: 8px 18px 18px; max-height: 76vh; overflow-y: auto; }
+  /* the pipeline — shows exactly which check stopped a request */
+  .pipe { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .step {
+    flex: 1 1 auto; min-width: 84px; padding: 8px 6px; border-radius: 5px;
+    border: 1px solid var(--line); background: #f7f9fb;
+    text-align: center; font-size: 11px; font-weight: 600; color: var(--slate-2);
+    letter-spacing: .01em; position: relative; transition: all .2s;
+  }
+  .step .ic { display: block; font-size: 13px; margin-bottom: 2px; line-height: 1; }
+  .step.pass { background: var(--ok-bg); border-color: var(--ok-line); color: var(--ok); }
+  .step.fail { background: var(--no-bg); border-color: var(--no); color: var(--no); box-shadow: 0 0 0 3px rgba(201,55,44,.13); }
+  .step.skip { opacity: .4; }
+
+  #log { padding: 8px 18px 18px; max-height: 72vh; overflow-y: auto; }
   .entry {
     border: 1px solid var(--line); border-left-width: 4px; border-radius: 6px;
     padding: 14px 16px; margin-top: 12px; animation: rise .2s ease-out;
@@ -145,7 +166,7 @@
   .entry.ok .what { color: var(--ok); }
   .entry.no .what { color: var(--no); }
   .entry .time { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--slate-2); }
-  .entry .why { margin-top: 8px; font-size: 16px; line-height: 1.45; color: var(--navy); }
+  .entry .why { margin-top: 8px; font-size: 16px; line-height: 1.45; }
   .entry .meta {
     margin-top: 9px; padding-top: 9px; border-top: 1px solid rgba(19,38,68,.08);
     font-family: var(--mono); font-size: 12.5px; color: var(--slate); word-break: break-all;
@@ -156,10 +177,29 @@
 <body>
 
 <header>
-  <div class="mark">S</div>
-  <h1>Sentinel-AP2</h1>
-  <span class="sub">Payment guardrail for autonomous agents</span>
-  <span class="env"><i></i> Razorpay test mode</span>
+  <div class="bar">
+    <div class="mark">S</div>
+    <h1>Sentinel-AP2</h1>
+    <span class="sub">Payment guardrail for autonomous agents</span>
+    <span class="env"><i></i> Razorpay test mode</span>
+  </div>
+  <div class="scoreboard">
+    <div class="stat attempted">
+      <div class="lab">Agent attempted</div>
+      <div class="val" id="s-attempted">₹0.00</div>
+      <div class="note"><span id="s-count">0</span> purchase requests</div>
+    </div>
+    <div class="stat blocked">
+      <div class="lab">Blocked</div>
+      <div class="val" id="s-blocked">₹0.00</div>
+      <div class="note"><span id="s-blocks">0</span> refused at the guardrail</div>
+    </div>
+    <div class="stat allowed">
+      <div class="lab">Actually charged</div>
+      <div class="val" id="s-allowed">₹0.00</div>
+      <div class="note">against a <span id="s-cap">—</span> mandate</div>
+    </div>
+  </div>
 </header>
 
 <main>
@@ -210,9 +250,53 @@
 <script>
 let mandate = null;
 let catalog = [];
+let attemptedPaise = 0, blockedPaise = 0, allowedPaise = 0, requests = 0, blocks = 0;
 
 const inr = (p) => "₹" + (p / 100).toLocaleString("en-IN", { minimumFractionDigits: 2 });
 const clock = () => new Date().toTimeString().slice(0, 8);
+
+/* The guardrail's checks, in the order guardrail.py runs them. Mapping the
+   rejection reason back to a step is what lets the UI show where a request
+   died rather than just that it did. */
+const STEPS = [
+  { key: "sig",   label: "Signature", match: r => r.includes("signature") || r.includes("not found") && r.includes("mandate") },
+  { key: "used",  label: "Single-use", match: r => r.includes("already used") },
+  { key: "exp",   label: "Expiry",    match: r => r.includes("expired") },
+  { key: "merch", label: "Merchant",  match: r => r.includes("merchant mismatch") },
+  { key: "price", label: "Price",     match: r => r.includes("price mismatch") },
+  { key: "cap",   label: "Cap",       match: r => r.includes("exceeds mandate cap") },
+  { key: "pay",   label: "Pay",       match: () => false },
+];
+
+function pipelineHtml(reason, accepted) {
+  const failIdx = accepted ? -1 : STEPS.findIndex(s => s.match(reason));
+  return `<div class="pipe">` + STEPS.map((s, i) => {
+    let cls = "pass", ic = "✓";
+    if (!accepted && failIdx >= 0) {
+      if (i === failIdx) { cls = "fail"; ic = "✕"; }
+      else if (i > failIdx) { cls = "skip"; ic = "·"; }
+    }
+    if (accepted && s.key === "pay") ic = "₹";
+    return `<div class="step ${cls}"><span class="ic">${ic}</span>${s.label}</div>`;
+  }).join("") + `</div>`;
+}
+
+function bumpStats(res) {
+  requests++;
+  // What the agent asked for, whether or not it was allowed. A blocked
+  // request reports 0 charged, so recompute its intent from the catalog.
+  const intent = res.status === "accepted" ? res.computed_total_paise : (res._intent || 0);
+  attemptedPaise += intent;
+  if (res.status === "accepted") allowedPaise += res.computed_total_paise;
+  else { blockedPaise += intent; blocks++; }
+
+  document.getElementById("s-attempted").textContent = inr(attemptedPaise);
+  document.getElementById("s-blocked").textContent = inr(blockedPaise);
+  document.getElementById("s-allowed").textContent = inr(allowedPaise);
+  document.getElementById("s-count").textContent = requests;
+  document.getElementById("s-blocks").textContent = blocks;
+  if (mandate) document.getElementById("s-cap").textContent = inr(mandate.max_amount_paise);
+}
 
 async function loadCatalog() {
   catalog = await (await fetch("/catalog")).json();
@@ -245,17 +329,20 @@ async function issueMandate() {
   const r = document.getElementById("receipt");
   r.className = "receipt";
   r.innerHTML =
-    `<span class="k">Cap</span><span class="v">${inr(mandate.max_amount_paise)}</span><br>
-     <span class="k">Merchant</span><span class="v">${mandate.merchant_id}</span><br>
-     <span class="k">Expires</span><span class="v">${new Date(mandate.expires_at).toLocaleTimeString()}</span><br>
-     <span class="k">Ed25519</span><span class="v">${mandate.signature_b64.slice(0, 26)}…</span>`;
+    `<span class="k">Cap</span>${inr(mandate.max_amount_paise)}<br>
+     <span class="k">Merchant</span>${mandate.merchant_id}<br>
+     <span class="k">Expires</span>${new Date(mandate.expires_at).toLocaleTimeString()}<br>
+     <span class="k">Ed25519</span>${mandate.signature_b64.slice(0, 26)}…`;
+  document.getElementById("s-cap").textContent = inr(mandate.max_amount_paise);
   enable(true);
 }
 
-async function purchase(payload, label) {
+async function purchase(payload, label, intentPaise) {
   const res = await (await fetch("/purchase", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
   })).json();
+  res._intent = intentPaise;
+  bumpStats(res);
   render(res, label);
   return res;
 }
@@ -273,13 +360,15 @@ function render(res, label) {
       <span class="time">${clock()}</span>
     </div>
     <div class="why">${res.reason}</div>
+    ${pipelineHtml(res.reason, ok)}
     <div class="meta">${ok
       ? `Charged ${inr(res.computed_total_paise)} · Razorpay ${res.razorpay_payment_id}`
-      : `No funds moved · txn ${res.transaction_id}`}</div>`;
+      : `Attempted ${inr(res._intent || 0)} · nothing charged · txn ${res.transaction_id}`}</div>`;
   log.prepend(el);
 }
 
 const target = () => document.getElementById("product").value;
+const priceOf = (id) => (catalog.find(p => p.id === id) || {}).price_paise || 0;
 
 /* Mandates are single-use, so a consumed one is rejected as a replay before
    any other check runs. Every attack except the replay case therefore runs
@@ -298,32 +387,32 @@ async function freshMandate() {
 
 function legitPurchase() {
   return purchase({ mandate_id: mandate.id, merchant_id: mandate.merchant_id,
-                    product_id: target(), qty: 1 }, "Agent purchase");
+                    product_id: target(), qty: 1 }, "Agent purchase", priceOf(target()));
 }
 
 function attackReplay() {
   return purchase({ mandate_id: mandate.id, merchant_id: mandate.merchant_id,
-                    product_id: target(), qty: 1 }, "Replayed mandate");
+                    product_id: target(), qty: 1 }, "Replayed mandate", priceOf(target()));
 }
 
 async function attackOverCap() {
   const m = await freshMandate();
   const top = catalog.reduce((a, b) => (a.price_paise > b.price_paise ? a : b));
   return purchase({ mandate_id: m.id, merchant_id: m.merchant_id,
-                    product_id: top.id, qty: 50 }, `50 × ${top.name}`);
+                    product_id: top.id, qty: 50 }, `50 × ${top.name}`, top.price_paise * 50);
 }
 
 async function attackMerchant() {
   const m = await freshMandate();
   return purchase({ mandate_id: m.id, merchant_id: "attacker_merchant",
-                    product_id: target(), qty: 1 }, "Merchant substitution");
+                    product_id: target(), qty: 1 }, "Merchant substitution", priceOf(target()));
 }
 
 async function attackPrice() {
   const m = await freshMandate();
   return purchase({ mandate_id: m.id, merchant_id: m.merchant_id,
                     product_id: target(), qty: 1,
-                    client_claimed_price_paise: 1 }, "Cart price tampering");
+                    client_claimed_price_paise: 1 }, "Cart price tampering", priceOf(target()));
 }
 
 loadCatalog();

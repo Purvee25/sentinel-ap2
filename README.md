@@ -78,11 +78,16 @@ All 9 currently pass (`pytest tests/ -v` — 9 passed).
 ### Watch the live end-to-end demo
 
 ```bash
-uvicorn app.main:app --reload &
-python scripts/demo_agent.py
+./run_demo.sh
 ```
 
-This is the script the pitch video walks through: 1 accepted purchase, 3 live attack attempts rejected in real time, then the full audit trail printed.
+Wipes prior state, starts the container, waits for health, and runs the buyer-agent demo end to end: 1 accepted purchase, 3 live attack attempts rejected in real time, then the full audit trail printed (exactly 4 entries — one clean run).
+
+To run it against an already-running server instead:
+
+```bash
+python scripts/demo_agent.py
+```
 
 ## What's deliberately not built
 

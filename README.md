@@ -39,6 +39,20 @@ agent  ──{mandate_id, merchant_id, product_id, qty}──▶  FastAPI
                                           └─ Razorpay     (only after accept)
 ```
 
+## What's actually new here
+
+Signed mandates and single-use nonces aren't novel — they're standard patterns, and the crypto is about forty lines. What I'd point at instead:
+
+**Injection is impossible rather than filtered.** The usual defense is a classifier looking for "ignore your instructions", which loses to rephrasing. There's no filter here because there's no channel: the agent sends two values, neither of them a price, and every money decision downstream is integer comparison. The catalog ships with a product whose description tells agents to ignore spending limits, and it gets rejected on arithmetic without anything having read it.
+
+**The security property is proven, not demonstrated.** Most projects show a guardrail working once. `test_total_spend_never_exceeds_mandate_across_many_hostile_requests` throws every product at every quantity against one mandate and asserts total money moved stays under the cap — no LLM in the loop, deliberately, since a test that needs a model to misbehave on cue isn't a test. The claim isn't "my agent behaved." It's that it doesn't matter whether it does.
+
+**Correctness doesn't assume a cooperative agent.** Limits are usually a safety net over an agent you basically trust. Here the agent is assumed hostile from the start and tested that way: obeying the injection, told to keep buying, salami-slicing quantities, forging a mandate id, rewriting its own cap directly in the database.
+
+**Failure after approval has a decided answer.** If Razorpay fails once the guardrail has said yes, the mandate stays consumed rather than reopening — a timeout means you can't tell whether the order was created, and reopening grants a retry against authorization already spent. Fails closed, and `test_payment_failure_does_not_reopen_the_mandate` keeps it that way.
+
+**Rejections are records, not errors.** Every blocked attempt writes a transaction row and an audit entry with its reason, so the trail shows what was stopped rather than only what succeeded.
+
 ## Running it
 
 ```bash

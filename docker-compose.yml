@@ -1,0 +1,16 @@
+services:
+  sentinel-ap2:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - SENTINEL_DB_PATH=/app/data/sentinel.db
+      - SENTINEL_KEY_DIR=/app/data/keys
+    volumes:
+      - sentinel-data:/app/data
+
+volumes:
+  sentinel-data:

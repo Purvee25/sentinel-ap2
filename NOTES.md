@@ -68,6 +68,13 @@ This is the graceful-failure path the track brief asks for: it fails closed, it'
 
 The reasoning: payment *execution* isn't what these tests are about. They test the guardrail's decisions, and those are identical in either mode.
 
+## 8. What is *not* verified
+
+Worth stating outright rather than letting someone discover it:
+
+- **The agent's LLM loop has never executed.** No Anthropic API key was available during the build. Its tools, argument validation, and guardrail integration are all tested and working against a live server; the `client.messages.create` call is written from current SDK documentation but unexercised. The security claim it illustrates is proven separately and deterministically in `tests/test_compromised_agent.py`, which is why this gap is a presentation weakness rather than a correctness one.
+- **Scope is deliberately narrow:** five products, one merchant, single-use mandates, one user. This is a reference implementation of the enforcement layer, not a product.
+
 ## What we'd do with another week
 
 - Real AP2/ACP-schema compliance instead of a custom mandate format modeled on the pattern

@@ -89,6 +89,8 @@ python scripts/agent_demo.py --tempt   # a goal that steers it toward the inject
 
 Requires `ANTHROPIC_API_KEY`. The guardrail and its tests need no key — only the agent uses an LLM.
 
+> **Known limitation, stated plainly:** the agent's tool layer, argument validation, and guardrail integration are all exercised and working, but the `client.messages.create` loop itself has not been run end-to-end — this was built without an Anthropic API key. If you run `scripts/agent_demo.py` you may hit a rough edge there. The security property the agent is meant to illustrate does not depend on it: `tests/test_compromised_agent.py` proves it deterministically, by simulating a caller with total freedom over the purchase payload rather than hoping a live model misbehaves on cue.
+
 **The design point:** the agent's purchase tool takes `product_id` and `qty`. It cannot state a price, cannot raise its own cap, and cannot reuse a mandate. One product's description contains an instruction telling any agent reading it to ignore spending limits — so the agent may well be compromised, and the system is built so that this does not matter. `tests/test_compromised_agent.py` proves the invariant directly by simulating a fully-obedient hostile caller: across every product and quantity thrown at one mandate, total money moved never exceeds the cap.
 
 ### Run the test suites

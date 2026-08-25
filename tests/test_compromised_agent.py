@@ -1,13 +1,13 @@
-"""Guardrail behaviour when the agent itself is compromised.
+"""What the guardrail does when the agent itself has been compromised.
 
-The adversarial suite covers attacks on the *protocol*. These cover the case
-the project actually exists for: the LLM has been successfully manipulated
-and is now issuing hostile purchase requests in good faith.
+The adversarial suite covers attacks on the protocol. This one covers the
+case the project exists for: the LLM has been manipulated and is issuing
+hostile purchases in good faith.
 
-No API key is needed. A real LLM is not required to prove this property —
-what matters is that a caller with full freedom over `{product_id, qty}`
-still cannot exceed the mandate. These tests simulate exactly that caller,
-which is strictly more adversarial than any single recorded LLM transcript.
+No API key needed, and deliberately so. Proving this doesn't require a real
+model — it requires a caller with complete freedom over {product_id, qty},
+which is what these simulate, and which is more hostile than any one
+transcript would be.
 """
 
 from app.database import SessionLocal

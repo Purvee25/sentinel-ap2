@@ -1,10 +1,8 @@
-"""The deterministic guardrail engine.
+"""Every money decision happens here.
 
-This module makes every money decision. It never reads free-text from an
-LLM to decide an amount or an approval — prices come only from the catalog
-table, totals are computed here, and every check below is a plain
-comparison. An LLM-driven agent can call this engine, but it cannot talk
-its way past it: there is no natural-language input this code interprets.
+Prices come from the catalog table, totals are computed in this module, and
+each check is a plain comparison. Nothing in here interprets natural
+language, which is why a compromised agent has nothing to talk its way past.
 """
 
 import json
@@ -80,9 +78,8 @@ def process_purchase(
     if qty <= 0:
         return _reject(db, mandate_id, product_id, qty, "invalid quantity")
 
-    # Price and total are ALWAYS computed from catalog truth, never from the
-    # agent's claim. A mismatched client-claimed price is treated as a
-    # tampering signal and rejected outright rather than silently corrected.
+    # A wrong claimed price is a tampering signal, so reject rather than
+    # quietly correcting it to the catalog value.
     computed_total = product.price_paise * qty
     if client_claimed_price_paise is not None and client_claimed_price_paise != product.price_paise:
         return _reject(
@@ -97,19 +94,16 @@ def process_purchase(
             f"exceeds mandate cap: total {computed_total} > max {mandate.max_amount_paise}",
         )
 
-    # All checks passed. Consume the mandate before calling out, so a crash
-    # mid-payment can't be replayed against the same mandate.
+    # Consume before calling out, so a crash mid-payment can't be replayed.
     mandate.status = "consumed"
     db.commit()
 
     try:
         payment_id = create_test_order(computed_total, receipt=f"mandate_{mandate.id}")
     except PaymentExecutionError as exc:
-        # The guardrail approved this, but the payment processor failed. The
-        # mandate stays consumed: re-opening it would hand an agent a retry
-        # against an authorization the user already spent, and we cannot know
-        # from here whether the order was created before the failure. The
-        # user re-issues a mandate to try again.
+        # Stays consumed. Reopening would grant a retry against an
+        # authorization already spent, and we can't tell from here whether the
+        # order was created before the failure surfaced.
         txn = Transaction(
             mandate_id=mandate.id, product_id=product_id, qty=qty,
             computed_total_paise=computed_total, status="failed",

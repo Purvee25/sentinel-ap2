@@ -1,82 +1,79 @@
-# What broke, and how we got out
+# What broke
 
-Kept live during the build — this is the field the buildathon submission form weighs most heavily ("the last one is the one we read first").
+Notes I kept while building this. Roughly in the order things happened.
 
-## 0. The `pkg_resources` bug we thought we'd fixed, and hadn't
+## setuptools removed pkg_resources and I didn't really fix it
 
-**What happened:** `razorpay` 1.4.2 imports `pkg_resources` at module load, which no longer exists — `setuptools` removed it in v81 (this machine has 84). Early in the build this broke every import, and the "fix" was to make the razorpay import lazy so mock mode didn't need it (see below). That worked, and the test suite went green.
+First thing that went wrong. Importing `app.razorpay_client` blew up every route and every test with `ModuleNotFoundError: No module named 'pkg_resources'`. The razorpay SDK (1.4.2) imports it at module load for version checks. setuptools dropped it in v81; this machine has 84.
 
-Then real credentials got added, the live path executed for the first time, and the exact same error came straight back. The lazy import hadn't fixed the bug — it had **deferred it to the one code path that mattered**, and the green test suite made it look solved. Nothing tested the live branch, so nothing caught it.
+I tried `pip install setuptools`, which did nothing, because the module is gone from modern setuptools entirely rather than just missing.
 
-**Actual fix:** upgraded to `razorpay` 2.0.1, which dropped the `pkg_resources` dependency. Verified `order.create` and `set_app_details` still exist on the 2.x client before pinning it.
+What I did instead was make the razorpay import lazy, so it only runs inside `_get_client()` when real credentials exist. Mock mode stopped touching the SDK at all. Tests went green and I moved on.
 
-**Second bug this exposed:** the failure surfaced to the user as *"Check the key id/secret are correct"* — because `create_test_order` wrapped everything, including import errors, in `PaymentExecutionError`. A missing module was being reported as bad credentials, which sends you debugging the wrong thing entirely. The client construction now happens outside the try block, and `verify_razorpay.py` handles `ImportError` separately with the right advice.
+That was not a fix. It was the bug moved somewhere I wasn't looking.
 
-**Lesson:** making an error go away is not the same as fixing it, and a passing test suite only covers the paths it actually exercises.
+Days later I added real Razorpay keys, ran the live path for the first time, and got the identical error back. The lazy import had pushed the failure into the one branch that actually mattered, and because nothing tested that branch, a fully green suite told me it was solved.
 
-## 1. `razorpay` SDK broke on Python 3.13
+The real fix was upgrading to razorpay 2.0.1, which dropped the dependency. I checked `order.create` and `set_app_details` still existed on the 2.x client before pinning it, since a major version bump can move things.
 
-**What happened:** the moment `app.razorpay_client` imported the `razorpay` package, every route (and every test) failed with `ModuleNotFoundError: No module named 'pkg_resources'`. The SDK's HTTP client still imports `pkg_resources` for version checks, and modern `setuptools` no longer ships it by default on 3.13.
+The same incident surfaced a second problem. The error reached me as "Check the key id/secret are correct" — my own message — because `create_test_order` had the client construction inside the try block that wraps everything in `PaymentExecutionError`. So a missing module got reported as bad credentials, and I spent a while looking at my keys instead of my dependencies. Client construction now sits outside that block, and `verify_razorpay.py` catches `ImportError` separately.
 
-**First instinct (wrong):** just `pip install setuptools` and move on. Didn't fix it — newer setuptools versions still don't expose `pkg_resources` by default.
+Two things I took from this. Making an error stop appearing isn't the same as fixing it. And a green test suite only tells you about the paths it runs.
 
-**Root cause:** this project runs in mock mode by default (no live Razorpay keys), so we were paying an import-time cost for a dependency the mock path never actually uses.
+## Testing "expired" without accidentally testing "tampered"
 
-**Fix:** made the `razorpay` import lazy — it only happens inside `_get_client()`, which is only called when real credentials are present. Mock mode now has zero dependency on the SDK being importable at all. This is also just a better design: a project meant to run without credentials shouldn't hard-fail on an optional integration's transitive dependency.
+The mandate schema rejects `ttl_seconds <= 0`, which is right — you shouldn't be able to issue a mandate that's already dead. But it also meant I couldn't reach the expiry-rejection path through the API.
 
-## 2. Deciding what "expired" actually means for a signed mandate
+Sleeping in a test until a short-TTL mandate expired would be slow and flaky. Editing `expires_at` in the database after issuance breaks the signature, so the test would pass for the wrong reason: it'd be exercising signature verification, not expiry.
 
-**What happened:** the mandate schema rejects `ttl_seconds <= 0` at the API layer (correctly — you can't *issue* an already-expired mandate). But that made it impossible to test the expiry-rejection path through the public API.
+I ended up calling `create_signed_mandate()` directly with a negative TTL and inserting the row myself. That produces a validly signed mandate that's already expired, which is exactly the case I wanted. Writing it forced me to notice that expiry and tampering are two separate checks in the engine, and worth testing separately.
 
-**Options considered:** (a) sleep in the test until a very-short-TTL mandate expires — slow and flaky; (b) manually edit `expires_at` in the DB after issuance — but that breaks the signature too, which would make the test actually be testing signature tampering, not expiry.
+## What happens if the payment fails after the guardrail says yes
 
-**Fix:** the test calls `create_signed_mandate()` directly (bypassing the API's TTL validation, which is a request-shape concern, not a signing concern) with a negative TTL, producing a *validly signed* but already-expired mandate, then inserts it into the DB directly. This isolates "expired" from "tampered" as two genuinely separate, independently-tested failure modes — which also forced us to notice they're separate guardrail checks in the actual engine (expiry is checked before signature-independent logic, but both exist).
+The mandate gets marked consumed before the Razorpay call, so a crash mid-payment can't be replayed. Fine. But that left a question I'd skipped: if Razorpay itself then fails, do I reopen the mandate?
 
-## 3. Docker build
+I decided no. Reopening hands the caller a free retry against an authorization the user already spent, and from inside the process I can't tell whether the order was created before the failure surfaced. So it fails closed: the purchase is recorded as `failed`, an audit entry is written, and the user issues a new mandate if they want to try again. `test_payment_failure_does_not_reopen_the_mandate` locks that in.
 
-Verified: `docker compose up --build` builds cleanly and serves real traffic — `/health`, `/catalog`, and the full `scripts/demo_agent.py` run (1 accepted purchase, 3 live attacks rejected) all pass against the containerized instance, not just the local venv.
+I'd rather have the annoying-but-safe behaviour here than the convenient one.
 
-## 4. Proving the guardrail holds against a compromised agent
+## .env was in requirements but never loaded
 
-**The problem:** the injected product description is only interesting if the agent might actually obey it. But an LLM's behaviour isn't deterministic — a test that runs a real model and asserts "the agent tried to overspend" would be flaky, and one recorded transcript where the model *resisted* the injection proves nothing about the guardrail.
+`python-dotenv` was pinned and `.env.example` told you to copy it to `.env`, but nothing ever called `load_dotenv()`. Anyone following my own README would have pasted in correct keys, kept seeing `order_mock_*` ids, and had no idea why.
 
-**Resolution:** decouple the two claims. The agent (`app/agent.py`) is real and can be run live (`scripts/agent_demo.py --tempt`) to show what a manipulated agent does. But the *security* claim is tested against a simulated caller with total freedom over `{product_id, qty}` — which is strictly more adversarial than any single LLM transcript, and fully deterministic. `test_total_spend_never_exceeds_mandate_across_many_hostile_requests` throws every product at every quantity against one mandate and asserts total money moved stays under the cap.
+Silent config failures are the worst kind because nothing looks wrong. Added `app/config.py`, which loads `.env` and reads credentials lazily instead of capturing them at import time, so import ordering stops mattering.
 
-That split is the actual thesis of the project: the guardrail's correctness must not depend on the agent staying uncompromised, so it shouldn't be *tested* through the agent either.
+While I was there I made `verify_razorpay.py` refuse any key that doesn't start with `rzp_test_`. Nothing in this project should be one typo from touching real money.
 
-## 5. `.env` was in requirements but never loaded
+## Adding credentials quietly turned my test suite live
 
-**What happened:** `python-dotenv` was pinned in `requirements.txt` and `.env.example` told users to copy it to `.env` — but nothing ever called `load_dotenv()`. Anyone following the README would have added correct Razorpay keys, seen `order_mock_*` ids anyway, and had no idea why. A silent config failure, which is the worst kind.
+Immediately after the above. Once a real `.env` existed, `app.config` loaded it for every process including pytest, which meant the suite would create a live test-mode order on every accepted purchase. Junk in the dashboard, and tests that suddenly needed the network.
 
-**Fix:** added `app/config.py`, which loads `.env` on import and reads credentials **lazily** rather than capturing them at import time — so import order stops mattering and tests can override credentials without reimporting modules.
+`conftest.py` now forces mock mode. It sets the credential vars to empty strings rather than deleting them, because `load_dotenv()` fills in absent keys but leaves existing ones alone — deleting them would have been silently undone on the next import.
 
-**Related fix:** `scripts/verify_razorpay.py` refuses to run against any key not starting with `rzp_test_`. Nothing in this project should be one typo away from touching real money.
+These tests are about the guardrail's decisions, and those don't change between mock and live.
 
-## 6. What happens when the payment fails *after* the guardrail says yes
+## Proving the guardrail works when the agent doesn't
 
-The mandate is marked consumed *before* the Razorpay call, so a crash mid-payment can't be replayed. But that raised a question the original code ignored: if Razorpay then fails, is the mandate re-opened?
+One of the products has a description telling any agent reading it to ignore spending limits. That's only interesting if the agent might actually obey.
 
-**Decision: no.** Re-opening it would hand a caller a free retry against an authorization the user already spent — and from inside the process we cannot tell whether the order was created before the failure surfaced. The purchase is recorded with status `failed`, an audit entry is written, and the user re-issues a mandate to try again. `test_payment_failure_does_not_reopen_the_mandate` pins this behaviour.
+But LLM behaviour isn't deterministic. A test that runs a real model and asserts "the agent tried to overspend" would be flaky, and a single transcript where the model happened to resist proves nothing about the guardrail.
 
-This is the graceful-failure path the track brief asks for: it fails closed, it's auditable, and the reasoning is written down rather than implied.
+So I split the two claims. The agent in `app/agent.py` is real and you can run it (`scripts/agent_demo.py --tempt`) to see what a manipulated one does. The security claim is tested separately against a simulated caller with complete freedom over `{product_id, qty}` — strictly more hostile than any one LLM run, and deterministic. `test_total_spend_never_exceeds_mandate_across_many_hostile_requests` throws every product at every quantity against one mandate and checks total money moved stays under the cap.
 
-## 7. Adding real credentials silently turned the test suite live
+That split is more or less the whole point of the project. The guardrail can't depend on the agent staying uncompromised, so it shouldn't be tested through the agent either.
 
-**What happened:** once a `.env` with real Razorpay keys existed, `app.config` loaded it for *every* process — including pytest. The suite would have created a live test-mode order on each accepted purchase: junk in the dashboard, and tests newly dependent on the network.
+## What I haven't verified
 
-**Fix:** `conftest.py` forces mock mode. It sets the credential vars to empty strings rather than deleting them, because `load_dotenv()` repopulates absent keys from `.env` but leaves existing ones alone — deleting them would have been silently undone.
+Saying this plainly rather than letting someone find it:
 
-The reasoning: payment *execution* isn't what these tests are about. They test the guardrail's decisions, and those are identical in either mode.
+The agent's LLM loop has never actually run. I built this without an Anthropic API key. Its tools, argument validation, and guardrail integration are all tested and working against a live server, but the `client.messages.create` call itself is written from the SDK docs and unexercised. The property it's meant to illustrate is proven deterministically in `tests/test_compromised_agent.py`, so this is a demo weakness rather than a correctness one — but it's untested code and I'd rather say so.
 
-## 8. What is *not* verified
+Scope is deliberately small: five products, one merchant, single-use mandates, one user. This is a reference implementation of the enforcement layer, not a product.
 
-Worth stating outright rather than letting someone discover it:
+Docker is verified. `docker compose up --build` builds clean and serves real traffic; the full demo runs against the container, not just my local venv.
 
-- **The agent's LLM loop has never executed.** No Anthropic API key was available during the build. Its tools, argument validation, and guardrail integration are all tested and working against a live server; the `client.messages.create` call is written from current SDK documentation but unexercised. The security claim it illustrates is proven separately and deterministically in `tests/test_compromised_agent.py`, which is why this gap is a presentation weakness rather than a correctness one.
-- **Scope is deliberately narrow:** five products, one merchant, single-use mandates, one user. This is a reference implementation of the enforcement layer, not a product.
+## With more time
 
-## What we'd do with another week
-
-- Real AP2/ACP-schema compliance instead of a custom mandate format modeled on the pattern
-- Multi-step mandates (spending caps across several purchases, not single-use)
-- A minimal frontend showing live mandates/transactions/rejections instead of reading JSON off the audit endpoint
+- Actual AP2/ACP schema compliance rather than a mandate format modeled on the pattern
+- Multi-use mandates with a running spend total, instead of single-use
+- Per-merchant catalogs rather than one seeded merchant

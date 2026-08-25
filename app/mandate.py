@@ -1,9 +1,7 @@
 """Mandate creation and signature verification.
 
-A mandate is a bounded, single-use spending authorization: max amount,
-merchant, and expiry, signed by the user's key. The guardrail engine trusts
-nothing about a purchase request except what it can verify against a
-correctly-signed mandate and the server's own catalog truth.
+A mandate is a single-use spending authorization — cap, merchant, expiry —
+signed by the user's key.
 """
 
 import base64
@@ -52,9 +50,11 @@ def create_signed_mandate(merchant_id: str, max_amount_paise: int, ttl_seconds: 
 
 
 def verify_mandate_signature(mandate) -> bool:
-    """Recomputes the canonical payload from stored fields and checks the
-    signature against it. If anything in the mandate row was altered after
-    issuance (e.g. max_amount_paise bumped up), this fails."""
+    """Rebuilds the signed payload from the stored fields and checks it.
+
+    Anything edited after issuance — a bumped cap, a swapped merchant —
+    fails here.
+    """
     payload = _canonical_payload(
         mandate.id, mandate.merchant_id, mandate.max_amount_paise,
         mandate.issued_at, mandate.expires_at, mandate.nonce,

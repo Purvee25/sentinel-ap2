@@ -1,18 +1,13 @@
-"""An autonomous buyer agent that shops against a merchant catalog.
+"""A buyer agent that shops against the merchant catalog.
 
-The agent is a *client* of Sentinel-AP2, not part of it. It runs an explicit
-tool-calling loop with a hard step cap, and its only route to spending money
-is the `purchase` tool — which posts to the guardrail and gets back an
-accept/reject verdict it must then reason about.
+This is a client of the guardrail, not part of it. Explicit tool-calling
+loop with a step cap; the only way it can spend money is the `purchase`
+tool, which posts to the guardrail and gets back a verdict to reason about.
 
-Two properties matter for the demo:
-
-1. The agent never states a price. Its purchase tool takes `product_id` and
-   `qty`; the amount charged is computed server-side from catalog truth.
-2. Catalog text is untrusted input. One product's description contains an
-   instruction telling the agent to ignore spending limits. The agent may or
-   may not be fooled by it — that's the point. The guardrail's correctness
-   does not depend on the agent staying uncompromised.
+It can't state a price — the tool takes product_id and qty, and the amount
+is computed server-side. Catalog text is untrusted, and one description
+contains an instruction telling the agent to ignore its limits. Whether the
+agent falls for that is beside the point.
 """
 
 import json

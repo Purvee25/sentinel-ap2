@@ -1,13 +1,9 @@
 """Razorpay test-mode order creation.
 
-Runs in MOCK mode when no credentials are configured, so the guardrail and
-its test suites work without any Razorpay account. With `rzp_test_*` keys in
-the environment (or a .env file), the same path creates real orders against
-Razorpay's test mode.
-
-This module never makes an authorization decision — `guardrail.py` has
-already accepted the purchase by the time anything here runs. A failure here
-is a payment-execution failure, not a policy one, and is surfaced as such.
+Falls back to mock ids when no credentials are set, so the project runs
+without a Razorpay account. Nothing here decides whether a purchase is
+allowed — guardrail.py has already approved it. Failures in this module are
+execution failures, not policy ones.
 """
 
 import logging

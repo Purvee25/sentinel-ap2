@@ -1,9 +1,8 @@
-"""Simulates the *user's device* holding a private key that signs mandates.
+"""Stands in for the user's device holding the mandate-signing key.
 
-In a real AP2/ACP-style system the user's wallet/device signs the mandate and
-only the signature + public key travel to the merchant/agent infrastructure.
-Here we generate that keypair once and persist it locally to keep demo runs
-deterministic. The private key never leaves this module.
+In a real AP2/ACP setup the user's wallet signs mandates and only the
+signature travels onward. Here the keypair is generated once and kept on
+disk so demo runs stay stable.
 """
 
 import os

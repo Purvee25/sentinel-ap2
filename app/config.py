@@ -1,8 +1,7 @@
-"""Configuration, loaded from the environment (and a .env file if present).
+"""Config from the environment, plus .env if there is one.
 
-Values are read lazily rather than captured at import time, so a .env loaded
-after this module is imported still takes effect, and tests can override
-credentials without reimporting.
+Values are read lazily rather than captured at import, so import ordering
+doesn't matter and tests can override credentials without reimporting.
 """
 
 import os

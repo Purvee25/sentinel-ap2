@@ -6,14 +6,12 @@ import pytest
 
 @pytest.fixture(autouse=True, scope="session")
 def _isolated_data_dir():
-    """Point the app at a throwaway data dir so tests never touch dev data
-    and always start from a clean DB + fresh signing keypair.
+    """Throwaway data dir, and force mock payments.
 
-    Also force mock payment mode. A developer with real credentials in .env
-    would otherwise have the suite create live test-mode orders on every
-    accepted purchase — filling their Razorpay dashboard with junk and making
-    the tests depend on the network. Payment execution is not what these
-    tests are about; the guardrail's decisions are.
+    Without the mock override, anyone with real keys in .env would have the
+    suite creating live orders on every accepted purchase — junk in their
+    dashboard, and tests that need the network. These tests are about the
+    guardrail's decisions, which don't change between modes.
     """
     tmp = tempfile.mkdtemp(prefix="sentinel-test-")
     os.environ["SENTINEL_DB_PATH"] = os.path.join(tmp, "test.db")

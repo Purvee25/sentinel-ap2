@@ -59,7 +59,20 @@ Or with Docker:
 docker compose up --build
 ```
 
-No credentials required — the app runs in **mock mode** automatically (mock Razorpay order IDs, scripted product picking) when `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET`/`ANTHROPIC_API_KEY` are absent. Copy `.env.example` to `.env` to add real ones.
+No credentials required — the app runs in **mock mode** automatically (mock Razorpay order ids) when `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` are absent.
+
+### Using real Razorpay test-mode keys
+
+1. Sign in at [dashboard.razorpay.com](https://dashboard.razorpay.com/) and switch to **Test Mode**
+2. **Settings → API Keys → Generate Test Key**
+3. `cp .env.example .env` and paste the key id and secret in
+4. Confirm it works:
+
+```bash
+python scripts/verify_razorpay.py
+```
+
+That creates one ₹1.00 test order and prints its id so you can match it in the dashboard under **Transactions → Orders**. The script refuses to run with anything other than an `rzp_test_*` key — this project is test-mode only and never touches real money.
 
 ## The autonomous agent
 

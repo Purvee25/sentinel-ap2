@@ -161,6 +161,40 @@ def test_tampered_cart_price_is_rejected(client):
     assert "price mismatch" in body["reason"]
 
 
+def test_payment_failure_does_not_reopen_the_mandate(monkeypatch, client):
+    """If Razorpay fails after the guardrail approved a purchase, the mandate
+    stays consumed. Re-opening it would hand a caller a free retry against an
+    authorization the user already spent, and we cannot tell from here whether
+    the order was created before the failure."""
+    from app import guardrail
+    from app.razorpay_client import PaymentExecutionError
+
+    mandate = _issue_mandate(client, max_amount_paise=1000000)
+    product = _cheap_product(client)
+
+    def boom(*args, **kwargs):
+        raise PaymentExecutionError("gateway timeout")
+
+    monkeypatch.setattr(guardrail, "create_test_order", boom)
+
+    failed = client.post("/purchase", json={
+        "mandate_id": mandate["id"], "merchant_id": mandate["merchant_id"],
+        "product_id": product["id"], "qty": 1,
+    }).json()
+    assert failed["status"] == "failed"
+    assert "gateway timeout" in failed["reason"]
+    assert failed["razorpay_payment_id"] == ""
+
+    monkeypatch.undo()
+
+    retry = client.post("/purchase", json={
+        "mandate_id": mandate["id"], "merchant_id": mandate["merchant_id"],
+        "product_id": product["id"], "qty": 1,
+    }).json()
+    assert retry["status"] == "rejected"
+    assert "already used" in retry["reason"]
+
+
 def test_prompt_injection_in_product_description_has_no_effect(client):
     """Attack: catalog contains a product whose description tries to
     instruct any agent/LLM reading it to bypass spending limits. The

@@ -11,10 +11,13 @@ agent does, because only the agent uses an LLM.
 import argparse
 import json
 import sys
+from pathlib import Path
 
 import httpx
 
-from app.agent import BuyerAgent, api_key_available
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from app.agent import BuyerAgent, api_key_available  # noqa: E402
 
 BASE_URL = "http://localhost:8000"
 

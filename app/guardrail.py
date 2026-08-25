@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.catalog import get_product
 from app.db_models import AuditLog, Mandate, Transaction
 from app.mandate import verify_mandate_signature
-from app.razorpay_client import create_test_order
+from app.razorpay_client import PaymentExecutionError, create_test_order
 
 
 @dataclass
@@ -102,7 +102,29 @@ def process_purchase(
     mandate.status = "consumed"
     db.commit()
 
-    payment_id = create_test_order(computed_total, receipt=f"mandate_{mandate.id}")
+    try:
+        payment_id = create_test_order(computed_total, receipt=f"mandate_{mandate.id}")
+    except PaymentExecutionError as exc:
+        # The guardrail approved this, but the payment processor failed. The
+        # mandate stays consumed: re-opening it would hand an agent a retry
+        # against an authorization the user already spent, and we cannot know
+        # from here whether the order was created before the failure. The
+        # user re-issues a mandate to try again.
+        txn = Transaction(
+            mandate_id=mandate.id, product_id=product_id, qty=qty,
+            computed_total_paise=computed_total, status="failed",
+            reason=f"payment execution failed: {exc}",
+        )
+        db.add(txn)
+        db.commit()
+        _audit(db, "payment_failed", {
+            "mandate_id": mandate.id, "product_id": product_id, "qty": qty,
+            "computed_total_paise": computed_total, "error": str(exc),
+        })
+        return PurchaseResult(
+            status="failed", reason=f"payment execution failed: {exc}",
+            computed_total_paise=computed_total, transaction_id=txn.id,
+        )
 
     txn = Transaction(
         mandate_id=mandate.id, product_id=product_id, qty=qty,

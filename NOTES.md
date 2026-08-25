@@ -32,6 +32,22 @@ Verified: `docker compose up --build` builds cleanly and serves real traffic —
 
 That split is the actual thesis of the project: the guardrail's correctness must not depend on the agent staying uncompromised, so it shouldn't be *tested* through the agent either.
 
+## 5. `.env` was in requirements but never loaded
+
+**What happened:** `python-dotenv` was pinned in `requirements.txt` and `.env.example` told users to copy it to `.env` — but nothing ever called `load_dotenv()`. Anyone following the README would have added correct Razorpay keys, seen `order_mock_*` ids anyway, and had no idea why. A silent config failure, which is the worst kind.
+
+**Fix:** added `app/config.py`, which loads `.env` on import and reads credentials **lazily** rather than capturing them at import time — so import order stops mattering and tests can override credentials without reimporting modules.
+
+**Related fix:** `scripts/verify_razorpay.py` refuses to run against any key not starting with `rzp_test_`. Nothing in this project should be one typo away from touching real money.
+
+## 6. What happens when the payment fails *after* the guardrail says yes
+
+The mandate is marked consumed *before* the Razorpay call, so a crash mid-payment can't be replayed. But that raised a question the original code ignored: if Razorpay then fails, is the mandate re-opened?
+
+**Decision: no.** Re-opening it would hand a caller a free retry against an authorization the user already spent — and from inside the process we cannot tell whether the order was created before the failure surfaced. The purchase is recorded with status `failed`, an audit entry is written, and the user re-issues a mandate to try again. `test_payment_failure_does_not_reopen_the_mandate` pins this behaviour.
+
+This is the graceful-failure path the track brief asks for: it fails closed, it's auditable, and the reasoning is written down rather than implied.
+
 ## What we'd do with another week
 
 - Real AP2/ACP-schema compliance instead of a custom mandate format modeled on the pattern

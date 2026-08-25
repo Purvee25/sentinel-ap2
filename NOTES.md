@@ -2,6 +2,18 @@
 
 Kept live during the build — this is the field the buildathon submission form weighs most heavily ("the last one is the one we read first").
 
+## 0. The `pkg_resources` bug we thought we'd fixed, and hadn't
+
+**What happened:** `razorpay` 1.4.2 imports `pkg_resources` at module load, which no longer exists — `setuptools` removed it in v81 (this machine has 84). Early in the build this broke every import, and the "fix" was to make the razorpay import lazy so mock mode didn't need it (see below). That worked, and the test suite went green.
+
+Then real credentials got added, the live path executed for the first time, and the exact same error came straight back. The lazy import hadn't fixed the bug — it had **deferred it to the one code path that mattered**, and the green test suite made it look solved. Nothing tested the live branch, so nothing caught it.
+
+**Actual fix:** upgraded to `razorpay` 2.0.1, which dropped the `pkg_resources` dependency. Verified `order.create` and `set_app_details` still exist on the 2.x client before pinning it.
+
+**Second bug this exposed:** the failure surfaced to the user as *"Check the key id/secret are correct"* — because `create_test_order` wrapped everything, including import errors, in `PaymentExecutionError`. A missing module was being reported as bad credentials, which sends you debugging the wrong thing entirely. The client construction now happens outside the try block, and `verify_razorpay.py` handles `ImportError` separately with the right advice.
+
+**Lesson:** making an error go away is not the same as fixing it, and a passing test suite only covers the paths it actually exercises.
+
 ## 1. `razorpay` SDK broke on Python 3.13
 
 **What happened:** the moment `app.razorpay_client` imported the `razorpay` package, every route (and every test) failed with `ModuleNotFoundError: No module named 'pkg_resources'`. The SDK's HTTP client still imports `pkg_resources` for version checks, and modern `setuptools` no longer ships it by default on 3.13.
@@ -47,6 +59,14 @@ The mandate is marked consumed *before* the Razorpay call, so a crash mid-paymen
 **Decision: no.** Re-opening it would hand a caller a free retry against an authorization the user already spent — and from inside the process we cannot tell whether the order was created before the failure surfaced. The purchase is recorded with status `failed`, an audit entry is written, and the user re-issues a mandate to try again. `test_payment_failure_does_not_reopen_the_mandate` pins this behaviour.
 
 This is the graceful-failure path the track brief asks for: it fails closed, it's auditable, and the reasoning is written down rather than implied.
+
+## 7. Adding real credentials silently turned the test suite live
+
+**What happened:** once a `.env` with real Razorpay keys existed, `app.config` loaded it for *every* process — including pytest. The suite would have created a live test-mode order on each accepted purchase: junk in the dashboard, and tests newly dependent on the network.
+
+**Fix:** `conftest.py` forces mock mode. It sets the credential vars to empty strings rather than deleting them, because `load_dotenv()` repopulates absent keys from `.env` but leaves existing ones alone — deleting them would have been silently undone.
+
+The reasoning: payment *execution* isn't what these tests are about. They test the guardrail's decisions, and those are identical in either mode.
 
 ## What we'd do with another week
 

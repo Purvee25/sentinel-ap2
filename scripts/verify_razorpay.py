@@ -41,9 +41,13 @@ def main() -> None:
     try:
         order_id = create_test_order(amount_paise=100, receipt="sentinel_ap2_verify")
     except PaymentExecutionError as exc:
-        print(f"\nFAILED: {exc}")
-        print("Check the key id/secret are correct and both are test-mode values.")
+        print(f"\nFAILED — Razorpay rejected the request: {exc}")
+        print("Check the key id and secret are correct, and both come from the same test key pair.")
         sys.exit(3)
+    except ImportError as exc:
+        print(f"\nFAILED — the razorpay SDK could not be imported: {exc}")
+        print("Reinstall dependencies: pip install -r requirements.txt")
+        sys.exit(4)
 
     print(f"\nSUCCESS — created order {order_id}")
     print("Find it under Transactions -> Orders in the Razorpay dashboard (Test Mode).")

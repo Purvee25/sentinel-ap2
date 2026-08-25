@@ -48,8 +48,10 @@ def create_test_order(amount_paise: int, receipt: str) -> str:
     if mock_mode():
         return f"order_mock_{uuid.uuid4().hex[:14]}"
 
+    client = _get_client()  # ImportError/config problems propagate as-is, not as payment failures
+
     try:
-        order = _get_client().order.create({
+        order = client.order.create({
             "amount": amount_paise,
             "currency": "INR",
             # Razorpay caps receipt at 40 chars

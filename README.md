@@ -74,6 +74,10 @@ python scripts/verify_razorpay.py
 
 That creates one ₹1.00 test order and prints its id so you can match it in the dashboard under **Transactions → Orders**. The script refuses to run with anything other than an `rzp_test_*` key — this project is test-mode only and never touches real money.
 
+**Verified working against live Razorpay test mode:** accepted purchases return real order ids (`order_TU2KIC2lKpldbt`), and rejected ones return an empty payment id because no order is ever created for them.
+
+The test suite always runs in mock mode, even with credentials present — see `tests/conftest.py`.
+
 ## The autonomous agent
 
 `app/agent.py` is a real tool-calling agent (Claude, `claude-opus-5`) that shops against the catalog: an explicit control loop with a hard 12-step cap, two tools (`search_catalog`, `purchase`), and validation on every tool argument since they originate from model output. It is a **client** of the guardrail, not part of it.

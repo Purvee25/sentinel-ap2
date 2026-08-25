@@ -3,191 +3,207 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINEL-AP2 // GUARDRAIL CONSOLE</title>
+<title>Sentinel-AP2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #05080a;
-    --panel: #080d10;
-    --grid: #0d1a1f;
-    --border: #16323a;
-    --phosphor: #35f0a0;
-    --phosphor-dim: #1d7a55;
-    --amber: #ffb648;
-    --red: #ff4d4d;
-    --red-dim: #4a1416;
-    --text: #b9d6cf;
-    --muted: #4d6b66;
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --line: #e4e7ec;
+    --line-soft: #f0f2f5;
+    --ink: #101828;
+    --ink-2: #475467;
+    --ink-3: #98a2b3;
+    --brand: #0b57d0;
+    --brand-soft: #eff4ff;
+    --ok: #067647;
+    --ok-bg: #ecfdf3;
+    --ok-line: #abefc6;
+    --no: #b42318;
+    --no-bg: #fef3f2;
+    --no-line: #fecdca;
+    --warn: #b54708;
+    --warn-bg: #fffaeb;
+    --radius: 10px;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
   body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font: 13px/1.6 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    letter-spacing: 0.02em;
-  }
-  /* CRT scanlines + vignette */
-  body::before {
-    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9;
-    background: repeating-linear-gradient(
-      to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.22) 3px, rgba(0,0,0,0) 4px);
-  }
-  body::after {
-    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 8;
-    background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%);
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 
   header {
-    border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
-    display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap;
-    background: linear-gradient(180deg, #071016 0%, var(--bg) 100%);
+    background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 18px 32px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
   }
-  .brand {
-    color: var(--phosphor); font-size: 17px; font-weight: 700; letter-spacing: 0.16em;
-    text-shadow: 0 0 12px rgba(53,240,160,0.45);
+  .mark {
+    width: 30px; height: 30px; border-radius: 8px; background: var(--brand);
+    display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 15px;
+    flex: none;
   }
-  .tagline { color: var(--muted); font-size: 12px; }
-  .live {
-    margin-left: auto; color: var(--phosphor); font-size: 11px; letter-spacing: 0.14em;
+  h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 14px; }
+  .env {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
+    background: var(--ok-bg); border: 1px solid var(--ok-line); color: var(--ok);
+    padding: 5px 11px; border-radius: 100px; font-size: 12.5px; font-weight: 600;
   }
-  .live .dot {
-    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-    background: var(--phosphor); margin-right: 7px;
-    box-shadow: 0 0 8px var(--phosphor); animation: pulse 1.6s infinite;
-  }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .env i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
 
   main {
-    display: grid; grid-template-columns: 380px 1fr; gap: 18px;
-    padding: 18px 24px 40px; align-items: start;
+    display: grid; grid-template-columns: 372px minmax(0, 1fr); gap: 20px;
+    padding: 22px 32px 56px; align-items: start; max-width: 1500px;
   }
   @media (max-width: 940px) { main { grid-template-columns: 1fr; } }
 
-  .panel {
-    border: 1px solid var(--border); background: var(--panel);
-    margin-bottom: 18px; position: relative;
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.04);
   }
-  .panel > .title {
-    background: var(--grid); border-bottom: 1px solid var(--border);
-    padding: 9px 14px; color: var(--phosphor); font-size: 14px;
-    letter-spacing: 0.16em; text-transform: uppercase;
+  .card > h2 {
+    margin: 0; padding: 14px 18px; border-bottom: 1px solid var(--line-soft);
+    font-size: 14px; font-weight: 600; letter-spacing: -0.005em;
+    display: flex; align-items: center; gap: 9px;
   }
-  .panel > .body { padding: 14px 14px 16px; }
+  .card > h2 .n {
+    width: 20px; height: 20px; border-radius: 5px; background: var(--brand-soft);
+    color: var(--brand); font-size: 11px; font-weight: 700;
+    display: grid; place-items: center; flex: none;
+  }
+  .card > .in { padding: 18px; }
 
-  label { display: block; color: var(--muted); font-size: 11px; letter-spacing: 0.1em;
-          text-transform: uppercase; margin: 12px 0 5px; }
+  label { display: block; font-size: 13px; font-weight: 500; color: var(--ink-2); margin: 16px 0 6px; }
   label:first-child { margin-top: 0; }
   input, select {
-    width: 100%; padding: 8px 10px; background: #030607; color: var(--phosphor);
-    border: 1px solid var(--border); font: inherit; border-radius: 0;
+    width: 100%; padding: 9px 12px; font: inherit; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
   }
-  input:focus, select:focus { outline: none; border-color: var(--phosphor); box-shadow: 0 0 0 1px rgba(53,240,160,.25); }
+  input:focus, select:focus {
+    outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(11,87,208,.12);
+  }
 
   button {
-    width: 100%; padding: 9px 12px; margin-top: 10px; cursor: pointer;
-    font: inherit; letter-spacing: 0.08em; text-transform: uppercase;
-    background: #061a14; color: var(--phosphor);
-    border: 1px solid var(--phosphor-dim); border-radius: 0;
-    transition: background .12s, box-shadow .12s;
+    width: 100%; padding: 10px 14px; margin-top: 12px; cursor: pointer;
+    font: inherit; font-weight: 600; font-size: 14px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    transition: background .12s, border-color .12s;
   }
-  button:hover:not(:disabled) { background: #0a2a20; box-shadow: 0 0 12px rgba(53,240,160,.2); }
-  button:disabled { opacity: .32; cursor: not-allowed; }
-  button.exec { background: #07231a; font-weight: 700; }
-  button.atk {
-    background: #1a0708; color: #ff8f8f; border-color: #5c2226;
-  }
-  button.atk:hover:not(:disabled) { background: #2a0b0d; box-shadow: 0 0 12px rgba(255,77,77,.22); }
+  button:hover:not(:disabled) { background: #fafbfc; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+  button.primary:hover:not(:disabled) { background: #0a4bb8; }
+  button.danger { color: var(--no); border-color: var(--no-line); background: var(--no-bg); }
+  button.danger:hover:not(:disabled) { background: #fde8e6; }
 
-  .mandate {
-    margin-top: 12px; padding: 10px 12px; background: #030607;
-    border: 1px dashed var(--border); font-size: 12px; word-break: break-all;
+  .receipt {
+    margin-top: 14px; padding: 13px 14px; background: #fafbfc;
+    border: 1px solid var(--line-soft); border-radius: 8px;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.75;
   }
-  .mandate .k { color: var(--muted); }
-  .mandate .v { color: var(--phosphor); }
-  .mandate.idle { color: var(--muted); }
+  .receipt .k { color: var(--ink-3); display: inline-block; min-width: 76px; }
+  .receipt .v { color: var(--ink); }
+  .receipt.empty { color: var(--ink-3); font-family: Inter, sans-serif; font-size: 13.5px; }
 
-  .cat-row {
-    display: flex; justify-content: space-between; gap: 10px;
-    padding: 6px 0; border-bottom: 1px dotted var(--border); font-size: 12px;
+  .item {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 11px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px;
   }
-  .cat-row:last-child { border-bottom: none; }
-  .cat-row .p { color: var(--phosphor-dim); white-space: nowrap; }
-  .cat-row .flag { display: block; color: var(--amber); font-size: 11px; margin-top: 3px; }
+  .item:last-child { border-bottom: none; }
+  .item:first-child { padding-top: 0; }
+  .item .amt { font-family: var(--mono); font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+  .item .warn {
+    display: block; margin-top: 5px; font-size: 12px; color: var(--warn);
+    background: var(--warn-bg); padding: 4px 8px; border-radius: 5px;
+  }
 
-  /* console — sized up for screen recording legibility */
-  #log { padding: 16px 18px; max-height: 76vh; overflow-y: auto; background: #030607; }
-  .line { margin-bottom: 18px; padding-left: 14px; border-left: 3px solid var(--border); animation: in .18s ease-out; }
-  @keyframes in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
-  .line.ok { border-left-color: var(--phosphor); }
-  .line.no { border-left-color: var(--red); }
-  .line .hdr { font-weight: 700; letter-spacing: 0.06em; font-size: 20px; line-height: 1.35; }
-  .line.ok .hdr { color: var(--phosphor); text-shadow: 0 0 14px rgba(53,240,160,.45); }
-  .line.no .hdr { color: var(--red); text-shadow: 0 0 14px rgba(255,77,77,.4); }
-  .line .why { color: #dcefe9; margin-top: 5px; font-size: 17px; line-height: 1.45; }
-  .line .meta { color: var(--muted); font-size: 13px; margin-top: 6px; word-break: break-all; }
-  .ts { color: var(--muted); }
-  .idle-msg { color: var(--muted); }
-  .cursor {
-    display: inline-block; width: 8px; height: 14px; background: var(--phosphor);
-    vertical-align: -2px; animation: blink 1s steps(2) infinite;
+  .hint { margin: 14px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--ink-3); }
+  .hint code { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+
+  #log { padding: 8px 18px 18px; max-height: 76vh; overflow-y: auto; }
+  .entry {
+    border: 1px solid var(--line); border-left-width: 4px; border-radius: 8px;
+    padding: 14px 16px; margin-top: 12px; animation: rise .2s ease-out;
   }
-  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
-  .note { color: var(--muted); font-size: 11px; margin-top: 10px; line-height: 1.6; }
-  .note b { color: var(--phosphor-dim); font-weight: 400; }
+  @keyframes rise { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .entry.ok { border-left-color: var(--ok); background: var(--ok-bg); }
+  .entry.no { border-left-color: var(--no); background: var(--no-bg); }
+  .entry .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .pill {
+    font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 5px;
+  }
+  .entry.ok .pill { background: var(--ok); color: #fff; }
+  .entry.no .pill { background: var(--no); color: #fff; }
+  .entry .what { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  .entry.ok .what { color: var(--ok); }
+  .entry.no .what { color: var(--no); }
+  .entry .time { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+  .entry .why { margin-top: 8px; font-size: 16px; line-height: 1.45; color: var(--ink); }
+  .entry .meta {
+    margin-top: 9px; padding-top: 9px; border-top: 1px solid rgba(16,24,40,.07);
+    font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); word-break: break-all;
+  }
+  .empty {
+    padding: 44px 18px; text-align: center; color: var(--ink-3); font-size: 14px;
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <span class="brand">SENTINEL-AP2</span>
-  <span class="tagline">// deterministic guardrail for autonomous agent payments</span>
-  <span class="live"><span class="dot"></span>ARMED</span>
+  <div class="mark">S</div>
+  <h1>Sentinel-AP2</h1>
+  <span class="sub">Payment guardrail for autonomous agents</span>
+  <span class="env"><i></i> Razorpay test mode</span>
 </header>
 
 <main>
   <div>
-    <div class="panel">
-      <div class="title">[01] issue mandate</div>
-      <div class="body">
-        <label for="cap">spending cap (inr)</label>
+    <div class="card">
+      <h2><span class="n">1</span> Issue mandate</h2>
+      <div class="in">
+        <label for="cap">Spending cap (₹)</label>
         <input id="cap" type="number" value="1500" min="1">
-        <label for="ttl">ttl (seconds)</label>
+        <label for="ttl">Valid for (seconds)</label>
         <input id="ttl" type="number" value="3600" min="1">
-        <label for="merchant">scoped merchant</label>
+        <label for="merchant">Scoped to merchant</label>
         <input id="merchant" type="text" value="merchant_xyz">
-        <button class="exec" onclick="issueMandate()">&gt; sign &amp; issue</button>
-        <div id="mandate" class="mandate idle">-- no mandate issued --</div>
+        <button class="primary" onclick="issueMandate()">Sign &amp; issue mandate</button>
+        <div id="receipt" class="receipt empty">No mandate issued yet.</div>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="title">[02] agent actions</div>
-      <div class="body">
-        <label for="product">target product</label>
+    <div class="card">
+      <h2><span class="n">2</span> Agent actions</h2>
+      <div class="in">
+        <label for="product">Product</label>
         <select id="product"></select>
-        <button class="exec" id="btn-buy" onclick="legitPurchase()" disabled>&gt; purchase (legitimate)</button>
-        <button class="atk" id="btn-replay" onclick="attackReplay()" disabled>! replay consumed mandate</button>
-        <button class="atk" id="btn-overcap" onclick="attackOverCap()" disabled>! exceed spending cap</button>
-        <button class="atk" id="btn-merchant" onclick="attackMerchant()" disabled>! substitute merchant</button>
-        <button class="atk" id="btn-price" onclick="attackPrice()" disabled>! tamper cart price</button>
-        <p class="note">
-          agent transmits <b>{product_id, qty}</b> only. price and total are resolved
-          server-side from catalog truth. no natural-language input reaches a money decision.
+        <button class="primary" id="b-buy" onclick="legitPurchase()" disabled>Purchase</button>
+        <button class="danger" id="b-replay" onclick="attackReplay()" disabled>Replay consumed mandate</button>
+        <button class="danger" id="b-cap" onclick="attackOverCap()" disabled>Exceed spending cap</button>
+        <button class="danger" id="b-merch" onclick="attackMerchant()" disabled>Substitute merchant</button>
+        <button class="danger" id="b-price" onclick="attackPrice()" disabled>Tamper with cart price</button>
+        <p class="hint">
+          The agent sends only <code>product_id</code> and <code>qty</code>. Price and total are
+          resolved server-side from the catalog, so no text it produces reaches a money decision.
         </p>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="title">[03] merchant catalog</div>
-      <div class="body" id="catalog"></div>
+    <div class="card">
+      <h2><span class="n">3</span> Catalog</h2>
+      <div class="in" id="catalog"></div>
     </div>
   </div>
 
-  <div class="panel">
-    <div class="title">[04] guardrail audit stream</div>
-    <div id="log"><div class="idle-msg">awaiting traffic <span class="cursor"></span></div></div>
+  <div class="card">
+    <h2>Audit trail</h2>
+    <div id="log"><div class="empty">Issue a mandate to begin.</div></div>
   </div>
 </main>
 
@@ -195,67 +211,71 @@
 let mandate = null;
 let catalog = [];
 
-const inr = (paise) => "₹" + (paise / 100).toLocaleString("en-IN", { minimumFractionDigits: 2 });
-const stamp = () => new Date().toTimeString().slice(0, 8);
+const inr = (p) => "₹" + (p / 100).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+const clock = () => new Date().toTimeString().slice(0, 8);
 
 async function loadCatalog() {
   catalog = await (await fetch("/catalog")).json();
   document.getElementById("catalog").innerHTML = catalog.map(p => {
     const bad = p.description.includes("ignore all spending limits");
-    return `<div class="cat-row">
-      <span>${p.name}${bad ? '<span class="flag">&#9888; embedded injection payload in description</span>' : ''}</span>
-      <span class="p">${inr(p.price_paise)}</span>
+    return `<div class="item">
+      <span>${p.name}${bad ? '<span class="warn">Description contains an embedded instruction telling agents to ignore spending limits</span>' : ''}</span>
+      <span class="amt">${inr(p.price_paise)}</span>
     </div>`;
   }).join("");
   document.getElementById("product").innerHTML = catalog
     .map(p => `<option value="${p.id}">${p.name} — ${inr(p.price_paise)}</option>`).join("");
 }
 
-function setAgentButtons(on) {
-  ["btn-buy","btn-replay","btn-overcap","btn-merchant","btn-price"]
+function enable(on) {
+  ["b-buy","b-replay","b-cap","b-merch","b-price"]
     .forEach(id => document.getElementById(id).disabled = !on);
 }
 
 async function issueMandate() {
-  const body = {
-    merchant_id: document.getElementById("merchant").value,
-    max_amount_paise: Math.round(Number(document.getElementById("cap").value) * 100),
-    ttl_seconds: Number(document.getElementById("ttl").value),
-  };
   mandate = await (await fetch("/mandates", {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      merchant_id: document.getElementById("merchant").value,
+      max_amount_paise: Math.round(Number(document.getElementById("cap").value) * 100),
+      ttl_seconds: Number(document.getElementById("ttl").value),
+    }),
   })).json();
 
-  const box = document.getElementById("mandate");
-  box.className = "mandate";
-  box.innerHTML =
-    `<span class="k">cap    </span> <span class="v">${inr(mandate.max_amount_paise)}</span><br>
-     <span class="k">merch  </span> <span class="v">${mandate.merchant_id}</span><br>
-     <span class="k">expires</span> <span class="v">${new Date(mandate.expires_at).toLocaleTimeString()}</span><br>
-     <span class="k">ed25519</span> <span class="v">${mandate.signature_b64.slice(0, 32)}…</span>`;
-  setAgentButtons(true);
+  const r = document.getElementById("receipt");
+  r.className = "receipt";
+  r.innerHTML =
+    `<span class="k">Cap</span><span class="v">${inr(mandate.max_amount_paise)}</span><br>
+     <span class="k">Merchant</span><span class="v">${mandate.merchant_id}</span><br>
+     <span class="k">Expires</span><span class="v">${new Date(mandate.expires_at).toLocaleTimeString()}</span><br>
+     <span class="k">Ed25519</span><span class="v">${mandate.signature_b64.slice(0, 28)}…</span>`;
+  enable(true);
 }
 
 async function purchase(payload, label) {
   const res = await (await fetch("/purchase", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
   })).json();
-  emit(res, label);
+  render(res, label);
   return res;
 }
 
-function emit(res, label) {
+function render(res, label) {
   const log = document.getElementById("log");
-  if (log.querySelector(".idle-msg")) log.innerHTML = "";
+  if (log.querySelector(".empty")) log.innerHTML = "";
   const ok = res.status === "accepted";
   const el = document.createElement("div");
-  el.className = "line " + (ok ? "ok" : "no");
+  el.className = "entry " + (ok ? "ok" : "no");
   el.innerHTML = `
-    <div class="hdr"><span class="ts">${stamp()}</span> ${ok ? "▶ PASS" : "✖ BLOCK"} :: ${label}</div>
+    <div class="top">
+      <span class="pill">${ok ? "Approved" : "Blocked"}</span>
+      <span class="what">${label}</span>
+      <span class="time">${clock()}</span>
+    </div>
     <div class="why">${res.reason}</div>
     <div class="meta">${ok
-      ? `charged ${inr(res.computed_total_paise)} · razorpay ${res.razorpay_payment_id}`
-      : `no funds moved · txn ${res.transaction_id}`}</div>`;
+      ? `Charged ${inr(res.computed_total_paise)} · Razorpay ${res.razorpay_payment_id}`
+      : `No funds moved · txn ${res.transaction_id}`}</div>`;
   log.prepend(el);
 }
 
@@ -263,8 +283,8 @@ const target = () => document.getElementById("product").value;
 
 /* Mandates are single-use, so a consumed one is rejected as a replay before
    any other check runs. Every attack except the replay case therefore runs
-   against its own freshly-issued mandate, so each guardrail demonstrates
-   independently. */
+   against its own freshly-issued mandate, so each guardrail shows up
+   independently rather than all reporting "already used". */
 async function freshMandate() {
   return await (await fetch("/mandates", {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -278,12 +298,12 @@ async function freshMandate() {
 
 function legitPurchase() {
   return purchase({ mandate_id: mandate.id, merchant_id: mandate.merchant_id,
-                    product_id: target(), qty: 1 }, "agent purchase");
+                    product_id: target(), qty: 1 }, "Agent purchase");
 }
 
 function attackReplay() {
   return purchase({ mandate_id: mandate.id, merchant_id: mandate.merchant_id,
-                    product_id: target(), qty: 1 }, "replayed mandate");
+                    product_id: target(), qty: 1 }, "Replayed mandate");
 }
 
 async function attackOverCap() {
@@ -296,14 +316,14 @@ async function attackOverCap() {
 async function attackMerchant() {
   const m = await freshMandate();
   return purchase({ mandate_id: m.id, merchant_id: "attacker_merchant",
-                    product_id: target(), qty: 1 }, "merchant substitution");
+                    product_id: target(), qty: 1 }, "Merchant substitution");
 }
 
 async function attackPrice() {
   const m = await freshMandate();
   return purchase({ mandate_id: m.id, merchant_id: m.merchant_id,
                     product_id: target(), qty: 1,
-                    client_claimed_price_paise: 1 }, "cart price tampering");
+                    client_claimed_price_paise: 1 }, "Cart price tampering");
 }
 
 loadCatalog();

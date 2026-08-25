@@ -24,6 +24,14 @@ Kept live during the build — this is the field the buildathon submission form 
 
 Verified: `docker compose up --build` builds cleanly and serves real traffic — `/health`, `/catalog`, and the full `scripts/demo_agent.py` run (1 accepted purchase, 3 live attacks rejected) all pass against the containerized instance, not just the local venv.
 
+## 4. Proving the guardrail holds against a compromised agent
+
+**The problem:** the injected product description is only interesting if the agent might actually obey it. But an LLM's behaviour isn't deterministic — a test that runs a real model and asserts "the agent tried to overspend" would be flaky, and one recorded transcript where the model *resisted* the injection proves nothing about the guardrail.
+
+**Resolution:** decouple the two claims. The agent (`app/agent.py`) is real and can be run live (`scripts/agent_demo.py --tempt`) to show what a manipulated agent does. But the *security* claim is tested against a simulated caller with total freedom over `{product_id, qty}` — which is strictly more adversarial than any single LLM transcript, and fully deterministic. `test_total_spend_never_exceeds_mandate_across_many_hostile_requests` throws every product at every quantity against one mandate and asserts total money moved stays under the cap.
+
+That split is the actual thesis of the project: the guardrail's correctness must not depend on the agent staying uncompromised, so it shouldn't be *tested* through the agent either.
+
 ## What we'd do with another week
 
 - Real AP2/ACP-schema compliance instead of a custom mandate format modeled on the pattern

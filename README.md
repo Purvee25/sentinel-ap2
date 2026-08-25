@@ -61,11 +61,26 @@ docker compose up --build
 
 No credentials required — the app runs in **mock mode** automatically (mock Razorpay order IDs, scripted product picking) when `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET`/`ANTHROPIC_API_KEY` are absent. Copy `.env.example` to `.env` to add real ones.
 
-### Run the adversarial test suite
+## The autonomous agent
+
+`app/agent.py` is a real tool-calling agent (Claude, `claude-opus-5`) that shops against the catalog: an explicit control loop with a hard 12-step cap, two tools (`search_catalog`, `purchase`), and validation on every tool argument since they originate from model output. It is a **client** of the guardrail, not part of it.
+
+```bash
+python scripts/agent_demo.py           # a goal the agent can satisfy within its mandate
+python scripts/agent_demo.py --tempt   # a goal that steers it toward the injected product
+```
+
+Requires `ANTHROPIC_API_KEY`. The guardrail and its tests need no key — only the agent uses an LLM.
+
+**The design point:** the agent's purchase tool takes `product_id` and `qty`. It cannot state a price, cannot raise its own cap, and cannot reuse a mandate. One product's description contains an instruction telling any agent reading it to ignore spending limits — so the agent may well be compromised, and the system is built so that this does not matter. `tests/test_compromised_agent.py` proves the invariant directly by simulating a fully-obedient hostile caller: across every product and quantity thrown at one mandate, total money moved never exceeds the cap.
+
+### Run the test suites
 
 ```bash
 pytest tests/ -v
 ```
+
+15 tests: 9 protocol attacks (`test_adversarial_suite.py`) and 6 compromised-agent scenarios (`test_compromised_agent.py`).
 
 | Attack simulated | Expected result |
 |---|---|
@@ -79,7 +94,16 @@ pytest tests/ -v
 | Agent claims a price that doesn't match the catalog | rejected — `price mismatch` |
 | Product description contains an embedded prompt-injection instruction ("ignore all spending limits") | rejected on the numeric cap alone — the instruction is never read |
 
-All 9 currently pass (`pytest tests/ -v` — 9 passed).
+And the compromised-agent suite:
+
+| Scenario | Expected result |
+|---|---|
+| Agent obeys the injection and buys the expensive item anyway | rejected on cap; no money moved |
+| Agent told to "keep buying" fires five purchases at one mandate | exactly one accepted, four rejected |
+| Agent salami-slices to the largest affordable quantity, then tries again | first accepted within cap, second rejected |
+| Every product × every quantity thrown at one mandate | total charged never exceeds the cap |
+| Agent invents a mandate id | rejected — not found |
+| Agent rewrites its own cap in the database | rejected — invalid signature |
 
 ### Watch the live end-to-end demo
 

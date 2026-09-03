@@ -10,329 +10,341 @@
   :root {
     --blue: #305EFF;
     --blue-dark: #2950DA;
-    --navy: #132644;
-    --ink: #1c2b3f;
+    --rail: #0f1d33;
+    --rail-2: #16283f;
+    --rail-line: #22374f;
+    --rail-text: #93a6bd;
+    --ink: #16243a;
     --slate: #55677d;
-    --slate-2: #8496a9;
-    --bg: #f4f6f8;
+    --slate-2: #8b9bad;
+    --bg: #f5f7f9;
     --surface: #fff;
-    --line: #dfe4ea;
-    --line-2: #eceff3;
-    --ok: #0b6b43;
-    --ok-bg: #f0f9f4;
-    --no: #b3271d;
-    --no-bg: #fdf3f2;
-    --amber-bg: #fdf8ec;
-    --amber: #8a5a10;
+    --line: #e0e5ea;
+    --line-2: #eef1f4;
+    --ok: #0a6b42;
+    --ok-bg: #f1faf5;
+    --ok-line: #a9dcc2;
+    --no: #b12318;
+    --no-bg: #fdf4f3;
+    --no-line: #eab9b4;
+    --amber: #855510;
+    --amber-bg: #fdf9ee;
     --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     margin: 0; background: var(--bg); color: var(--ink);
     font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
+    display: grid; grid-template-columns: 260px minmax(0, 1fr);
   }
-  a { color: var(--blue); }
+  @media (max-width: 860px) { body { grid-template-columns: 1fr; } }
 
-  /* ---- top bar ---- */
-  header {
-    background: var(--surface); border-bottom: 1px solid var(--line);
-    padding: 0 20px; display: flex; align-items: center; gap: 12px; height: 52px;
+  /* ---------- left rail: everything you can *do* ---------- */
+  .rail {
+    background: var(--rail); color: #fff; min-height: 100vh;
+    display: flex; flex-direction: column; position: sticky; top: 0;
+    max-height: 100vh; overflow-y: auto;
   }
-  .logo {
-    width: 22px; height: 22px; border-radius: 4px; background: var(--blue); color: #fff;
+  @media (max-width: 860px) { .rail { position: static; max-height: none; min-height: 0; } }
+  .brand {
+    display: flex; align-items: center; gap: 9px; padding: 15px 16px;
+    border-bottom: 1px solid var(--rail-line);
+  }
+  .brand .mk {
+    width: 22px; height: 22px; border-radius: 4px; background: var(--blue);
     display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none;
   }
-  h1 { margin: 0; font-size: 14px; font-weight: 600; }
-  .desc { color: var(--slate-2); font-size: 13px; }
-  .mode {
-    margin-left: auto; font-size: 12px; color: var(--slate); border: 1px solid var(--line);
-    padding: 3px 9px; border-radius: 3px; background: #fbfcfd;
-  }
-  .mode b { font-weight: 600; color: var(--ink); }
+  .brand .nm { font-size: 13.5px; font-weight: 600; }
+  .brand .sb { font-size: 11px; color: var(--rail-text); }
 
-  /* ---- summary strip ---- */
-  .strip {
+  .grp { padding: 14px 16px; border-bottom: 1px solid var(--rail-line); }
+  .grp > .gt {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em;
+    color: #6d829c; font-weight: 600; margin-bottom: 10px;
+  }
+  .rail label { display: block; font-size: 11.5px; color: var(--rail-text); margin: 9px 0 4px; }
+  .rail label:first-of-type { margin-top: 0; }
+  .rail input, .rail select {
+    width: 100%; padding: 6px 8px; font: inherit; font-size: 12.5px; color: #fff;
+    background: var(--rail-2); border: 1px solid var(--rail-line); border-radius: 3px;
+  }
+  .rail input:focus, .rail select:focus { outline: none; border-color: var(--blue); }
+  .rail select option { color: #000; }
+  .rail button {
+    width: 100%; padding: 7px 10px; margin-top: 8px; cursor: pointer; text-align: left;
+    font: inherit; font-size: 12.5px; border-radius: 3px;
+    background: var(--rail-2); border: 1px solid var(--rail-line); color: #dce5ef;
+  }
+  .rail button:hover:not(:disabled) { background: #1d3450; }
+  .rail button:disabled { opacity: .38; cursor: not-allowed; }
+  .rail button.primary {
+    background: var(--blue); border-color: var(--blue); color: #fff;
+    font-weight: 600; text-align: center;
+  }
+  .rail button.primary:hover:not(:disabled) { background: var(--blue-dark); }
+  .rail button.atk { padding-left: 24px; position: relative; }
+  .rail button.atk::before {
+    content: ""; position: absolute; left: 10px; top: 50%; margin-top: -3px;
+    width: 6px; height: 6px; border-radius: 50%; background: #d4645b;
+  }
+  .issued {
+    margin-top: 10px; border: 1px solid var(--rail-line); border-radius: 3px;
+    font-family: var(--mono); font-size: 11px; background: rgba(0,0,0,.18);
+  }
+  .issued div { display: flex; gap: 8px; padding: 4px 8px; border-bottom: 1px solid var(--rail-line); }
+  .issued div:last-child { border-bottom: none; }
+  .issued .k { color: #6d829c; width: 54px; flex: none; }
+  .issued .v { color: #cfdcea; word-break: break-all; }
+  .issued.none { padding: 8px; color: #6d829c; font-family: inherit; font-size: 12px; }
+  .foot {
+    margin-top: auto; padding: 12px 16px; border-top: 1px solid var(--rail-line);
+    font-size: 11.5px; color: var(--rail-text); display: flex; align-items: center; gap: 7px;
+  }
+  .foot .dot { width: 6px; height: 6px; border-radius: 50%; background: #4fb37f; }
+
+  /* ---------- main: everything you can *observe* ---------- */
+  .main { min-width: 0; display: flex; flex-direction: column; }
+  .topbar {
     background: var(--surface); border-bottom: 1px solid var(--line);
-    display: flex; flex-wrap: wrap;
+    display: flex; flex-wrap: wrap; align-items: stretch;
   }
-  .cell { padding: 12px 20px; border-right: 1px solid var(--line-2); min-width: 168px; }
-  .cell .k {
-    font-size: 11px; color: var(--slate-2); text-transform: uppercase;
-    letter-spacing: .04em; margin-bottom: 4px;
+  .stat { padding: 11px 18px; border-right: 1px solid var(--line-2); min-width: 150px; }
+  .stat .k {
+    font-size: 10.5px; color: var(--slate-2); text-transform: uppercase;
+    letter-spacing: .05em; margin-bottom: 3px;
   }
-  .cell .v { font-family: var(--mono); font-size: 19px; font-weight: 500; letter-spacing: -.01em; }
-  .cell .v.neg { color: var(--no); }
-  .cell .v.pos { color: var(--ok); }
-  .cell .sub { font-size: 12px; color: var(--slate-2); margin-top: 3px; }
+  .stat .v { font-family: var(--mono); font-size: 18px; letter-spacing: -.01em; }
+  .stat .v.neg { color: var(--no); }
+  .stat .v.pos { color: var(--ok); }
+  .stat .s { font-size: 11.5px; color: var(--slate-2); margin-top: 2px; }
+  .runbox { padding: 11px 18px; flex: 1; min-width: 280px; }
+  .runbox .rh { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
+  .runbox .rh .k {
+    font-size: 10.5px; color: var(--slate-2); text-transform: uppercase; letter-spacing: .05em;
+  }
+  .runbox .rh .src { margin-left: auto; font-family: var(--mono); font-size: 10.5px; color: var(--slate-2); }
+  .runbox .rl { font-size: 12.5px; }
+  .runbox .rl .n { font-family: var(--mono); font-weight: 600; }
+  .runbox .rl .z { color: var(--ok); font-weight: 600; }
+  .runbox .rb { margin-top: 5px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 11.5px; color: var(--slate); }
+  .runbox .rb b { font-family: var(--mono); font-weight: 500; color: var(--ink); }
 
-  /* verification summary — a table, not a hero */
-  .verify { padding: 12px 20px; flex: 1; min-width: 300px; }
-  .verify .hdr {
-    display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;
-  }
-  .verify .hdr .k {
-    font-size: 11px; color: var(--slate-2); text-transform: uppercase; letter-spacing: .04em;
-  }
-  .verify .hdr .src { margin-left: auto; font-size: 11px; color: var(--slate-2); font-family: var(--mono); }
-  .verify .line1 { font-size: 13px; }
-  .verify .line1 .num { font-family: var(--mono); font-weight: 600; }
-  .verify .line1 .zero { color: var(--ok); font-weight: 600; }
-  .vbars { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
-  .vbar { font-size: 11.5px; color: var(--slate); }
-  .vbar b { font-family: var(--mono); font-weight: 500; color: var(--ink); }
-
-  /* ---- layout ---- */
-  .wrap { padding: 16px 20px 40px; max-width: 1440px; }
-  .panel {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
-    margin-bottom: 16px;
-  }
-  .panel > .ph {
-    padding: 10px 14px; border-bottom: 1px solid var(--line-2);
+  .body { padding: 16px 18px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+  .card > .ch {
+    padding: 9px 14px; border-bottom: 1px solid var(--line-2);
     font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;
   }
-  .panel > .ph .note { margin-left: auto; font-weight: 400; color: var(--slate-2); font-size: 12px; }
-  .panel > .pb { padding: 14px; }
-  .cols { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 16px; align-items: start; }
-  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+  .card > .ch .n { margin-left: auto; font-weight: 400; font-size: 11.5px; color: var(--slate-2); }
+  .card > .cb { padding: 14px; }
 
-  /* ---- forms ---- */
-  label { display: block; font-size: 12px; color: var(--slate); margin: 12px 0 4px; }
-  label:first-child { margin-top: 0; }
-  input, select {
-    width: 100%; padding: 6px 9px; font: inherit; font-size: 13px; color: var(--ink);
-    background: var(--surface); border: 1px solid var(--line); border-radius: 3px;
-  }
-  input:focus, select:focus { outline: 2px solid rgba(48,94,255,.35); outline-offset: -1px; border-color: var(--blue); }
-  button {
-    width: 100%; padding: 7px 11px; margin-top: 8px; cursor: pointer;
-    font: inherit; font-size: 13px; font-weight: 500; border-radius: 3px;
-    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
-  }
-  button:hover:not(:disabled) { background: #f7f9fb; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  button.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
-  button.primary:hover:not(:disabled) { background: var(--blue-dark); }
-  button.danger { color: var(--no); }
-  button.danger:hover:not(:disabled) { background: var(--no-bg); }
-  .sep { margin: 12px 0 6px; font-size: 11px; color: var(--slate-2);
-         text-transform: uppercase; letter-spacing: .04em; }
-
-  .kv {
-    margin-top: 10px; border: 1px solid var(--line-2); border-radius: 3px;
-    font-family: var(--mono); font-size: 12px;
-  }
-  .kv div { display: flex; gap: 10px; padding: 5px 9px; border-bottom: 1px solid var(--line-2); }
-  .kv div:last-child { border-bottom: none; }
-  .kv .k { color: var(--slate-2); width: 62px; flex: none; }
-  .kv .v { word-break: break-all; }
-  .kv.empty { padding: 9px; color: var(--slate-2); font-family: inherit; font-size: 12.5px; }
-
-  .row {
-    display: flex; justify-content: space-between; gap: 10px;
-    padding: 7px 0; border-bottom: 1px solid var(--line-2); font-size: 13px;
-  }
-  .row:last-child { border-bottom: none; }
-  .row .amt { font-family: var(--mono); font-size: 12.5px; color: var(--slate); }
-  .row .flag {
-    display: block; margin-top: 4px; font-size: 11.5px; line-height: 1.45; color: var(--amber);
-    background: var(--amber-bg); border-left: 2px solid #d9a441; padding: 4px 8px;
-  }
-  .hint { margin: 10px 0 0; font-size: 12px; line-height: 1.5; color: var(--slate-2); }
-  .hint code { font-family: var(--mono); font-size: 11.5px; }
-
-  /* ---- interception strip ---- */
-  .arena { position: relative; height: 118px; background: #fbfcfd; }
-  .track {
-    position: absolute; left: 74px; right: 74px; top: 44px; height: 1px;
-    background: var(--line); z-index: 0;
-  }
-  .node {
-    position: absolute; top: 44px; transform: translate(-50%, -50%);
+  /* pipeline strip */
+  .flow { position: relative; height: 104px; }
+  .rulel { position: absolute; left: 60px; right: 60px; top: 40px; height: 1px; background: var(--line); }
+  .end {
+    position: absolute; top: 40px; transform: translate(-50%, -50%);
     display: flex; flex-direction: column; align-items: center; gap: 5px; z-index: 2;
   }
-  .node .box {
-    width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 3px;
+  .end .bx {
+    width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 3px;
     background: var(--surface); display: grid; place-items: center; color: var(--slate);
   }
-  .node .nm { font-size: 10.5px; color: var(--slate-2); text-transform: uppercase; letter-spacing: .04em; }
-  .n-agent { left: 40px; }
-  .n-target { right: 40px; left: auto; transform: translate(50%, -50%); }
+  .end .lb { font-size: 10px; color: var(--slate-2); text-transform: uppercase; letter-spacing: .05em; }
+  .e-src { left: 34px; }
+  .e-dst { left: auto; right: 34px; transform: translate(50%, -50%); }
   .gate {
-    position: absolute; left: 132px; right: 132px; top: 44px; transform: translateY(-50%);
+    position: absolute; left: 116px; right: 116px; top: 40px; transform: translateY(-50%);
     display: flex; gap: 4px; z-index: 1;
   }
   .gstep {
-    flex: 1; min-width: 0; padding: 6px 4px; border: 1px solid var(--line);
+    flex: 1; min-width: 0; padding: 5px 4px; border: 1px solid var(--line);
     border-radius: 3px; background: var(--surface); text-align: center;
   }
-  .gstep .gn {
-    font-family: var(--mono); font-size: 10px; color: var(--slate-2); display: block;
-  }
+  .gstep .gn { font-family: var(--mono); font-size: 9.5px; color: var(--slate-2); display: block; }
   .gstep .gl {
-    font-size: 10.5px; color: var(--slate); display: block; margin-top: 2px;
+    font-size: 10px; color: var(--slate); display: block; margin-top: 1px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .gstep.hit-pass { border-color: #9ed3b6; background: var(--ok-bg); }
+  .gstep.hit-pass { border-color: var(--ok-line); background: var(--ok-bg); }
   .gstep.hit-pass .gl, .gstep.hit-pass .gn { color: var(--ok); }
   .gstep.hit-fail { border-color: var(--no); background: var(--no-bg); }
   .gstep.hit-fail .gl, .gstep.hit-fail .gn { color: var(--no); font-weight: 600; }
   .packet {
-    position: absolute; top: 44px; left: 40px; transform: translate(-50%, -50%);
-    width: 9px; height: 9px; border-radius: 50%; background: var(--blue); z-index: 3;
-    transition: left 1s cubic-bezier(.4,0,.2,1), background .15s;
+    position: absolute; top: 40px; left: 34px; transform: translate(-50%, -50%);
+    width: 8px; height: 8px; border-radius: 50%; background: var(--blue); z-index: 3;
+    transition: left .95s cubic-bezier(.4,0,.2,1), background .15s;
   }
   .packet.go-pass { background: var(--ok); }
   .packet.go-fail { background: var(--no); }
-  .packet.burst { opacity: 0; transition: opacity .3s; }
-  .cap-line {
-    position: absolute; left: 0; right: 0; bottom: 14px; text-align: center;
-    font-size: 12.5px; color: var(--slate-2); z-index: 2;
+  .packet.gone { opacity: 0; transition: opacity .28s; }
+  .verdict {
+    position: absolute; left: 0; right: 0; bottom: 12px; text-align: center;
+    font-size: 12.5px; color: var(--slate-2);
   }
-  .cap-line.pass { color: var(--ok); }
-  .cap-line.fail { color: var(--no); }
-  .cap-line .mono { font-family: var(--mono); }
+  .verdict.pass { color: var(--ok); }
+  .verdict.fail { color: var(--no); }
+  .verdict .m { font-family: var(--mono); }
 
-  /* ---- audit ---- */
-  #log { max-height: 68vh; overflow-y: auto; }
+  /* catalog inline */
+  .prow {
+    display: flex; justify-content: space-between; gap: 10px;
+    padding: 7px 0; border-bottom: 1px solid var(--line-2); font-size: 13px;
+  }
+  .prow:last-child { border-bottom: none; }
+  .prow:first-child { padding-top: 0; }
+  .prow .amt { font-family: var(--mono); font-size: 12.5px; color: var(--slate); }
+  .prow .flag {
+    display: block; margin-top: 4px; font-size: 11.5px; line-height: 1.45; color: var(--amber);
+    background: var(--amber-bg); border-left: 2px solid #d7a949; padding: 4px 8px;
+  }
+
+  /* audit */
+  #log { max-height: 62vh; overflow-y: auto; }
   .entry { padding: 11px 14px; border-bottom: 1px solid var(--line-2); }
   .entry:last-child { border-bottom: none; }
   .entry .top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .tag {
-    font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
     padding: 2px 6px; border-radius: 2px; border: 1px solid;
   }
-  .entry.ok .tag { color: var(--ok); border-color: #9ed3b6; background: var(--ok-bg); }
-  .entry.no .tag { color: var(--no); border-color: #e8b4af; background: var(--no-bg); }
+  .entry.ok .tag { color: var(--ok); border-color: var(--ok-line); background: var(--ok-bg); }
+  .entry.no .tag { color: var(--no); border-color: var(--no-line); background: var(--no-bg); }
   .entry .what { font-size: 13.5px; font-weight: 600; }
-  .entry .ts { margin-left: auto; font-family: var(--mono); font-size: 11.5px; color: var(--slate-2); }
-  .entry .why { margin-top: 5px; font-size: 13px; color: var(--ink); }
+  .entry .ts { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--slate-2); }
+  .entry .why { margin-top: 5px; font-size: 13px; }
   .pipe { display: flex; gap: 3px; margin-top: 8px; flex-wrap: wrap; }
   .step {
-    flex: 1 1 auto; min-width: 62px; padding: 4px 3px; border-radius: 2px;
-    border: 1px solid var(--line); background: #fbfcfd; text-align: center;
-    font-size: 10.5px; color: var(--slate-2);
+    flex: 1 1 auto; min-width: 60px; padding: 4px 3px; border-radius: 2px;
+    border: 1px solid var(--line); background: #fafbfc; text-align: center;
+    font-size: 10px; color: var(--slate-2);
   }
-  .step .ic { display: block; font-family: var(--mono); font-size: 10px; }
-  .step.pass { border-color: #9ed3b6; background: var(--ok-bg); color: var(--ok); }
+  .step .ic { display: block; font-family: var(--mono); font-size: 9.5px; }
+  .step.pass { border-color: var(--ok-line); background: var(--ok-bg); color: var(--ok); }
   .step.fail { border-color: var(--no); background: var(--no-bg); color: var(--no); font-weight: 600; }
-  .step.skip { opacity: .45; }
+  .step.skip { opacity: .42; }
   .entry .meta {
-    margin-top: 7px; font-family: var(--mono); font-size: 11.5px;
+    margin-top: 7px; font-family: var(--mono); font-size: 11px;
     color: var(--slate-2); word-break: break-all;
   }
-  .empty { padding: 28px 14px; text-align: center; color: var(--slate-2); font-size: 13px; }
+  .none { padding: 26px 14px; text-align: center; color: var(--slate-2); font-size: 13px; }
+  .hint { margin: 9px 0 0; font-size: 11.5px; line-height: 1.5; color: #6d829c; }
+  .hint code { font-family: var(--mono); font-size: 11px; color: #a9bcd2; }
 </style>
 </head>
 <body>
 
-<header>
-  <span class="logo">S</span>
-  <h1>Sentinel-AP2</h1>
-  <span class="desc">Payment guardrail for autonomous agents</span>
-  <span class="mode">Razorpay <b>test mode</b></span>
-</header>
-
-<div class="strip">
-  <div class="cell">
-    <div class="k">Attempted</div>
-    <div class="v" id="s-attempted">₹0.00</div>
-    <div class="sub"><span id="s-count">0</span> requests</div>
-  </div>
-  <div class="cell">
-    <div class="k">Blocked</div>
-    <div class="v neg" id="s-blocked">₹0.00</div>
-    <div class="sub"><span id="s-blocks">0</span> refused</div>
-  </div>
-  <div class="cell">
-    <div class="k">Charged</div>
-    <div class="v pos" id="s-allowed">₹0.00</div>
-    <div class="sub">cap <span id="s-cap">—</span></div>
-  </div>
-  <div class="verify" id="proof">
-    <div class="hdr">
-      <span class="k">Randomised stress run</span>
-      <span class="src">GET /fuzz-report</span>
-    </div>
-    <div class="line1">
-      <span class="num" id="p-attempts">—</span> hostile purchase attempts ·
-      <span class="zero" id="p-violations">—</span> · every mandate cap held
-    </div>
-    <div class="vbars" id="p-bars"></div>
-  </div>
-</div>
-
-<div class="wrap">
-  <div class="panel">
-    <div class="ph">Interception <span class="note">where the last request stopped</span></div>
-    <div class="arena" id="arena">
-      <div class="track"></div>
-      <div class="node n-agent">
-        <span class="box">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
-            <rect x="4" y="6" width="12" height="10" rx="2"/><path d="M10 3v3M7 10h.01M13 10h.01M8 13h4"/>
-          </svg>
-        </span>
-        <span class="nm">Agent</span>
-      </div>
-      <div class="gate" id="gate"></div>
-      <div class="node n-target">
-        <span class="box">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
-            <path d="M3 8l7-4 7 4M5 8v8M15 8v8M9 8v8M3 16h14"/>
-          </svg>
-        </span>
-        <span class="nm">Razorpay</span>
-      </div>
-      <div class="packet" id="packet" style="display:none"></div>
-      <div class="cap-line" id="a-caption"></div>
-    </div>
-  </div>
-
-  <div class="cols">
+<!-- everything actionable lives on the rail -->
+<aside class="rail">
+  <div class="brand">
+    <span class="mk">S</span>
     <div>
-      <div class="panel">
-        <div class="ph">Mandate</div>
-        <div class="pb">
-          <label for="cap">Spending cap (₹)</label>
-          <input id="cap" type="number" value="1500" min="1">
-          <label for="ttl">Valid for (seconds)</label>
-          <input id="ttl" type="number" value="3600" min="1">
-          <label for="merchant">Scoped to merchant</label>
-          <input id="merchant" type="text" value="merchant_xyz">
-          <button class="primary" onclick="issueMandate()">Sign and issue</button>
-          <div id="receipt" class="kv empty">None issued.</div>
-        </div>
-      </div>
+      <div class="nm">Sentinel-AP2</div>
+      <div class="sb">Agent payment guardrail</div>
+    </div>
+  </div>
 
-      <div class="panel">
-        <div class="ph">Agent actions</div>
-        <div class="pb">
-          <label for="product">Product</label>
-          <select id="product"></select>
-          <button class="primary" id="b-buy" onclick="legitPurchase()" disabled>Purchase</button>
-          <div class="sep">Attacks</div>
-          <button class="danger" id="b-replay" onclick="attackReplay()" disabled>Replay consumed mandate</button>
-          <button class="danger" id="b-cap" onclick="attackOverCap()" disabled>Exceed spending cap</button>
-          <button class="danger" id="b-merch" onclick="attackMerchant()" disabled>Substitute merchant</button>
-          <button class="danger" id="b-price" onclick="attackPrice()" disabled>Tamper with cart price</button>
-          <p class="hint">
-            The agent sends <code>product_id</code> and <code>qty</code> only. Price and total are
-            resolved server-side from the catalog, so no text it produces reaches a money decision.
-          </p>
-        </div>
-      </div>
+  <div class="grp">
+    <div class="gt">Mandate</div>
+    <label for="cap">Spending cap (₹)</label>
+    <input id="cap" type="number" value="1500" min="1">
+    <label for="ttl">Valid for (seconds)</label>
+    <input id="ttl" type="number" value="3600" min="1">
+    <label for="merchant">Scoped to merchant</label>
+    <input id="merchant" type="text" value="merchant_xyz">
+    <button class="primary" onclick="issueMandate()">Sign and issue</button>
+    <div id="receipt" class="issued none">None issued</div>
+  </div>
 
-      <div class="panel">
-        <div class="ph">Catalog</div>
-        <div class="pb" id="catalog"></div>
+  <div class="grp">
+    <div class="gt">Agent request</div>
+    <label for="product">Product</label>
+    <select id="product"></select>
+    <button class="primary" id="b-buy" onclick="legitPurchase()" disabled>Purchase</button>
+  </div>
+
+  <div class="grp">
+    <div class="gt">Attacks</div>
+    <button class="atk" id="b-replay" onclick="attackReplay()" disabled>Replay consumed mandate</button>
+    <button class="atk" id="b-cap" onclick="attackOverCap()" disabled>Exceed spending cap</button>
+    <button class="atk" id="b-merch" onclick="attackMerchant()" disabled>Substitute merchant</button>
+    <button class="atk" id="b-price" onclick="attackPrice()" disabled>Tamper with cart price</button>
+    <p class="hint">
+      The agent sends <code>product_id</code> and <code>qty</code> only. Price and total resolve
+      server-side, so no text it produces reaches a money decision.
+    </p>
+  </div>
+
+  <div class="foot"><span class="dot"></span> Razorpay test mode</div>
+</aside>
+
+<!-- everything observable lives here -->
+<div class="main">
+  <div class="topbar">
+    <div class="stat">
+      <div class="k">Attempted</div>
+      <div class="v" id="s-attempted">₹0.00</div>
+      <div class="s"><span id="s-count">0</span> requests</div>
+    </div>
+    <div class="stat">
+      <div class="k">Blocked</div>
+      <div class="v neg" id="s-blocked">₹0.00</div>
+      <div class="s"><span id="s-blocks">0</span> refused</div>
+    </div>
+    <div class="stat">
+      <div class="k">Charged</div>
+      <div class="v pos" id="s-allowed">₹0.00</div>
+      <div class="s">cap <span id="s-cap">—</span></div>
+    </div>
+    <div class="runbox" id="proof">
+      <div class="rh">
+        <span class="k">Randomised stress run</span>
+        <span class="src">GET /fuzz-report</span>
+      </div>
+      <div class="rl">
+        <span class="n" id="p-attempts">—</span> hostile attempts ·
+        <span class="z" id="p-violations">—</span> · every mandate cap held
+      </div>
+      <div class="rb" id="p-bars"></div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="card">
+      <div class="ch">Request path <span class="n">where the last request stopped</span></div>
+      <div class="flow" id="arena">
+        <div class="rulel"></div>
+        <div class="end e-src">
+          <span class="bx">
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+              <rect x="4" y="6" width="12" height="10" rx="2"/><path d="M10 3v3M7.5 10h.01M12.5 10h.01M8 13h4"/>
+            </svg>
+          </span>
+          <span class="lb">Agent</span>
+        </div>
+        <div class="gate" id="gate"></div>
+        <div class="end e-dst">
+          <span class="bx">
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+              <path d="M3 8l7-4 7 4M5 8v8M15 8v8M10 8v8M3 16h14"/>
+            </svg>
+          </span>
+          <span class="lb">Razorpay</span>
+        </div>
+        <div class="packet" id="packet" style="display:none"></div>
+        <div class="verdict" id="a-caption"></div>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="ph">Audit trail</div>
-      <div id="log"><div class="empty">Issue a mandate to begin.</div></div>
+    <div class="card">
+      <div class="ch">Audit trail <span class="n">every decision, approved or refused</span></div>
+      <div id="log"><div class="none">Issue a mandate to begin.</div></div>
+    </div>
+
+    <div class="card">
+      <div class="ch">Catalog <span class="n">source of price truth</span></div>
+      <div class="cb" id="catalog"></div>
     </div>
   </div>
 </div>
@@ -376,8 +388,7 @@ function initGate() {
       <span class="gn">${i + 1}</span>
       <span class="gl">${s.label}</span>
     </div>`).join("");
-  const caption = document.getElementById("a-caption");
-  caption.textContent = "Issue a mandate, then fire a request";
+  document.getElementById("a-caption").textContent = "Issue a mandate, then send a request";
 }
 
 let arenaBusy = Promise.resolve();
@@ -395,20 +406,20 @@ function runArena(res, label) {
     const gateSteps = Array.from(document.querySelectorAll("#gate .gstep"));
     const arena = document.getElementById("arena");
     const packet = document.getElementById("packet");
-    const caption = document.getElementById("a-caption");
+    const verdict = document.getElementById("a-caption");
 
     gateSteps.forEach(g => g.classList.remove("hit-pass", "hit-fail"));
-    caption.className = "cap-line";
+    verdict.className = "verdict";
 
-    // Positions are read off the live layout rather than assumed from CSS
-    // percentages, so the gate can be re-laid-out without desyncing this.
-    const originX = 40;
+    // Positions are measured off the live layout rather than assumed from CSS,
+    // so the gate can be re-laid-out without desyncing the animation.
+    const originX = 34;
     const arenaLeft = arena.getBoundingClientRect().left;
     const stopAt = failIdx >= 0 ? failIdx : STEPS.length - 1;
     const tile = gateSteps[stopAt];
     const tileRect = tile.getBoundingClientRect();
     const stopX = tileRect.left - arenaLeft + tileRect.width / 2;
-    const targetX = arena.clientWidth - 40;
+    const targetX = arena.clientWidth - 34;
 
     packet.style.display = "block";
     packet.className = "packet";
@@ -425,21 +436,21 @@ function runArena(res, label) {
         packet.classList.add("go-pass");
         requestAnimationFrame(() => { packet.style.left = targetX + "px"; });
         setTimeout(() => {
-          caption.textContent = `Approved — ${label} · ${inr(res.computed_total_paise)}`;
-          caption.className = "cap-line pass";
-          setTimeout(() => { packet.style.display = "none"; resolve(); }, 800);
-        }, 1000);
+          verdict.innerHTML = `Cleared all 7 checks — ${label} · <span class="m">${inr(res.computed_total_paise)}</span>`;
+          verdict.className = "verdict pass";
+          setTimeout(() => { packet.style.display = "none"; resolve(); }, 750);
+        }, 950);
       } else {
         tile.classList.add("hit-fail");
         packet.classList.add("go-fail");
         setTimeout(() => {
-          packet.classList.add("burst");
-          caption.innerHTML = `Stopped at step ${stopAt + 1} <span class="mono">${STEPS[stopAt].label}</span> — ${label}`;
-          caption.className = "cap-line fail";
-          setTimeout(() => { packet.style.display = "none"; resolve(); }, 350);
-        }, 140);
+          packet.classList.add("gone");
+          verdict.innerHTML = `Stopped at check ${stopAt + 1} <span class="m">${STEPS[stopAt].label}</span> — ${label}`;
+          verdict.className = "verdict fail";
+          setTimeout(() => { packet.style.display = "none"; resolve(); }, 320);
+        }, 130);
       }
-    }, 1050);
+    }, 1000);
   });
 }
 
@@ -464,7 +475,7 @@ async function loadCatalog() {
   catalog = await (await fetch("/catalog")).json();
   document.getElementById("catalog").innerHTML = catalog.map(p => {
     const bad = p.description.includes("ignore all spending limits");
-    return `<div class="row">
+    return `<div class="prow">
       <span>${p.name}${bad ? '<span class="flag">Description contains an embedded instruction telling agents to ignore spending limits.</span>' : ''}</span>
       <span class="amt">${inr(p.price_paise)}</span>
     </div>`;
@@ -489,12 +500,12 @@ async function issueMandate() {
   })).json();
 
   const r = document.getElementById("receipt");
-  r.className = "kv";
+  r.className = "issued";
   r.innerHTML =
     `<div><span class="k">cap</span><span class="v">${inr(mandate.max_amount_paise)}</span></div>
      <div><span class="k">merchant</span><span class="v">${mandate.merchant_id}</span></div>
      <div><span class="k">expires</span><span class="v">${new Date(mandate.expires_at).toLocaleTimeString()}</span></div>
-     <div><span class="k">ed25519</span><span class="v">${mandate.signature_b64.slice(0, 22)}…</span></div>`;
+     <div><span class="k">ed25519</span><span class="v">${mandate.signature_b64.slice(0, 18)}…</span></div>`;
   document.getElementById("s-cap").textContent = inr(mandate.max_amount_paise);
   enable(true);
 }
@@ -511,7 +522,7 @@ async function purchase(payload, label, intentPaise) {
 
 function render(res, label) {
   const log = document.getElementById("log");
-  if (log.querySelector(".empty")) log.innerHTML = "";
+  if (log.querySelector(".none")) log.innerHTML = "";
   const ok = res.status === "accepted";
   const el = document.createElement("div");
   el.className = "entry " + (ok ? "ok" : "no");
@@ -601,7 +612,7 @@ async function loadProof() {
 
     const reasons = Object.entries(report.rejection_reasons || {}).sort((a, b) => b[1] - a[1]);
     document.getElementById("p-bars").innerHTML = reasons.map(([key, n]) =>
-      `<span class="vbar">${REASON_LABELS[key] || key} <b>${n.toLocaleString("en-IN")}</b></span>`
+      `<span>${REASON_LABELS[key] || key} <b>${n.toLocaleString("en-IN")}</b></span>`
     ).join("");
   } catch {
     el.style.display = "none"; // no report committed yet

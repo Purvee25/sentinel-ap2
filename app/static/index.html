@@ -115,6 +115,8 @@
   .proof-cmd code { color: #cddaee; }
   .proof.loading .proof-headline .big { opacity: .35; }
 
+  .arena-wrap { max-width: 1520px; margin: 0 auto; padding: 22px 32px 0; }
+
   main {
     display: grid; grid-template-columns: 376px minmax(0, 1fr); gap: 20px;
     padding: 22px 32px 56px; align-items: start; max-width: 1520px;
@@ -192,6 +194,73 @@
   .step.pass { background: var(--ok-bg); border-color: var(--ok-line); color: var(--ok); }
   .step.fail { background: var(--no-bg); border-color: var(--no); color: var(--no); box-shadow: 0 0 0 3px rgba(201,55,44,.13); }
   .step.skip { opacity: .4; }
+
+  /* the interception arena — a request literally flies at the gate and
+     either shatters on the check that caught it or sails through */
+  .arena-card { padding: 0; overflow: hidden; }
+  .arena {
+    position: relative; height: 148px;
+    background:
+      radial-gradient(420px 140px at 50% 0%, rgba(48,94,255,.06), transparent 70%),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, var(--line-soft) 40px);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .a-node {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 26px; z-index: 2;
+  }
+  .a-node span { font-size: 10.5px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--slate-2); }
+  .a-agent { left: 7%; }
+  .a-target { left: 93%; }
+  .gate {
+    position: absolute; left: 26%; right: 26%; top: 50%; transform: translateY(-50%);
+    display: flex; gap: 3px; z-index: 1;
+  }
+  .gstep {
+    flex: 1; height: 92px; border-radius: 6px; background: var(--surface);
+    border: 1px solid var(--line); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px; transition: all .18s;
+  }
+  .gstep .gi { font-size: 14px; line-height: 1; color: var(--slate-2); }
+  .gstep .gl { font-size: 8.5px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--slate-2); text-align: center; }
+  .gstep.hit-pass { background: var(--ok-bg); border-color: var(--ok-line); }
+  .gstep.hit-pass .gi, .gstep.hit-pass .gl { color: var(--ok); }
+  .gstep.hit-fail {
+    background: var(--no-bg); border-color: var(--no); animation: shake .32s;
+    box-shadow: 0 0 0 4px rgba(201,55,44,.16);
+  }
+  .gstep.hit-fail .gi, .gstep.hit-fail .gl { color: var(--no); }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+  .packet {
+    position: absolute; top: 50%; left: 7%; transform: translate(-50%, -50%);
+    width: 15px; height: 15px; border-radius: 50%; z-index: 3;
+    background: var(--blue); box-shadow: 0 0 0 4px rgba(48,94,255,.22);
+    transition: left 1.1s cubic-bezier(.35,0,.15,1), background .15s, box-shadow .15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .packet.go-pass { background: var(--ok); box-shadow: 0 0 0 4px rgba(15,122,77,.22); }
+  .packet.go-fail { background: var(--no); box-shadow: 0 0 0 4px rgba(201,55,44,.22); }
+  .packet.burst { animation: burst .38s forwards; }
+  @keyframes burst { to { transform: translate(-50%, -50%) scale(2.6); opacity: 0; } }
+  .packet.fly { animation: none; }
+  .a-caption {
+    position: absolute; left: 0; right: 0; bottom: 8px; text-align: center;
+    font-family: var(--mono); font-size: 12px; color: var(--slate-2); z-index: 2;
+    opacity: 0; transition: opacity .2s;
+  }
+  .a-caption.show { opacity: 1; }
+  .a-caption.pass { color: var(--ok); }
+  .a-caption.fail { color: var(--no); }
+  .arena-empty {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--slate-2); font-size: 13px; z-index: 1;
+  }
 
   #log { padding: 8px 18px 18px; max-height: 72vh; overflow-y: auto; }
   .entry {
@@ -273,6 +342,20 @@
   </div>
 </section>
 
+<div class="arena-wrap">
+  <div class="card arena-card">
+    <h2>Live interception <span style="margin-left:auto;font-weight:500;color:var(--slate-2);font-size:12.5px">watch each request fly at the gate</span></h2>
+    <div class="arena" id="arena">
+      <div class="arena-empty" id="arena-empty">Issue a mandate and fire a purchase to watch it here</div>
+      <div class="a-node a-agent">🤖<span>Agent</span></div>
+      <div class="gate" id="gate"></div>
+      <div class="a-node a-target">🏦<span>Razorpay</span></div>
+      <div class="packet" id="packet" style="display:none"></div>
+      <div class="a-caption" id="a-caption"></div>
+    </div>
+  </div>
+</div>
+
 <main>
   <div>
     <div class="card">
@@ -350,6 +433,77 @@ function pipelineHtml(reason, accepted) {
     if (accepted && s.key === "pay") ic = "₹";
     return `<div class="step ${cls}"><span class="ic">${ic}</span>${s.label}</div>`;
   }).join("") + `</div>`;
+}
+
+const STEP_ICONS = { sig: "🔏", used: "1×", exp: "⏱", merch: "🏬", price: "₹", cap: "▦", pay: "→" };
+
+function initGate() {
+  document.getElementById("gate").innerHTML = STEPS.map(s =>
+    `<div class="gstep" data-key="${s.key}">
+      <span class="gi">${STEP_ICONS[s.key] || "•"}</span>
+      <span class="gl">${s.label}</span>
+    </div>`).join("");
+}
+
+let arenaBusy = Promise.resolve();
+
+function playArena(res, label) {
+  // Serialize animations so rapid clicks queue instead of overlapping.
+  arenaBusy = arenaBusy.then(() => runArena(res, label));
+  return arenaBusy;
+}
+
+function runArena(res, label) {
+  return new Promise(resolve => {
+    const ok = res.status === "accepted";
+    const failIdx = ok ? -1 : STEPS.findIndex(s => s.match(res.reason));
+    const gateSteps = Array.from(document.querySelectorAll("#gate .gstep"));
+    gateSteps.forEach(g => g.classList.remove("hit-pass", "hit-fail"));
+
+    document.getElementById("arena-empty").style.display = "none";
+    const packet = document.getElementById("packet");
+    const caption = document.getElementById("a-caption");
+    caption.classList.remove("show", "pass", "fail");
+    packet.style.display = "flex";
+    packet.className = "packet";
+    packet.style.transition = "none";
+    packet.style.left = "7%";
+    packet.textContent = "";
+    // force reflow so the next transition actually animates from 7%
+    void packet.offsetWidth;
+    packet.style.transition = "";
+
+    const stopAt = failIdx >= 0 ? failIdx : STEPS.length - 1;
+    const gateLeft = 26, gateRight = 74; // matches CSS .gate { left:26%; right:26% }
+    const stepWidth = (gateRight - gateLeft) / STEPS.length;
+    const stopPct = gateLeft + stepWidth * (stopAt + 0.5);
+
+    requestAnimationFrame(() => { packet.style.left = stopPct + "%"; });
+
+    setTimeout(() => {
+      const tile = gateSteps[stopAt];
+      if (ok) {
+        gateSteps.forEach(g => g.classList.add("hit-pass"));
+        packet.classList.add("go-pass");
+        requestAnimationFrame(() => { packet.style.left = "93%"; });
+        setTimeout(() => {
+          packet.textContent = "₹";
+          caption.textContent = `Approved — ${label}`;
+          caption.classList.add("show", "pass");
+          setTimeout(() => { packet.style.display = "none"; resolve(); }, 900);
+        }, 1150);
+      } else {
+        if (tile) tile.classList.add("hit-fail");
+        packet.classList.add("go-fail");
+        setTimeout(() => {
+          packet.classList.add("burst");
+          caption.textContent = `Blocked at "${STEPS[stopAt].label}" — ${label}`;
+          caption.classList.add("show", "fail");
+          setTimeout(() => { packet.style.display = "none"; resolve(); }, 420);
+        }, 120);
+      }
+    }, 1150);
+  });
 }
 
 function bumpStats(res) {
@@ -436,6 +590,7 @@ function render(res, label) {
       ? `Charged ${inr(res.computed_total_paise)} · Razorpay ${res.razorpay_payment_id}`
       : `Attempted ${inr(res._intent || 0)} · nothing charged · txn ${res.transaction_id}`}</div>`;
   log.prepend(el);
+  playArena(res, label);
 }
 
 const target = () => document.getElementById("product").value;
@@ -522,6 +677,7 @@ async function loadProof() {
 
 loadCatalog();
 loadProof();
+initGate();
 </script>
 </body>
 </html>

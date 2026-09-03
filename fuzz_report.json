@@ -1,0 +1,17 @@
+{
+  "attempts": 50000,
+  "accepted": 1932,
+  "rejected": 48068,
+  "failed": 0,
+  "attempted_paise": 5460750836300,
+  "accepted_paise": 333640900,
+  "blocked_paise": 5460417195400,
+  "rejection_reasons": {
+    "exceeds mandate cap": 11787,
+    "merchant mismatch": 20838,
+    "mandate not found": 5003,
+    "price mismatch": 7295,
+    "already used": 3145
+  },
+  "cap_violations": []
+}

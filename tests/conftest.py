@@ -31,3 +31,14 @@ def client():
 
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture
+def db_session(client):
+    """A direct SQLAlchemy session onto the same DB the `client` fixture just
+    had the app create and seed via its startup lifespan."""
+    from app.database import SessionLocal
+
+    db = SessionLocal()
+    yield db
+    db.close()

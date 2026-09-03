@@ -138,7 +138,7 @@ One product's description contains an instruction telling any agent reading it t
 pytest tests/ -v
 ```
 
-16 tests. Ten cover attacks on the protocol:
+17 tests. Ten cover attacks on the protocol:
 
 | Attack | Result |
 |---|---|
@@ -165,6 +165,20 @@ Six cover the agent itself being hostile:
 | Agent rewrites its own cap in the database | rejected — invalid signature |
 
 That last group is where the actual security argument lives. Rather than running a real LLM and hoping it misbehaves on cue, those tests simulate a caller with complete freedom over the purchase payload, which is more hostile than any single model run and doesn't depend on model behaviour staying constant.
+
+One more test, `test_fuzz_invariant.py`, runs a small slice of the fuzzer below on every `pytest` call, so the invariant it checks can't silently break between real fuzz runs.
+
+## Measured at scale
+
+The 17 tests above check specific, named attacks. This checks the general case:
+
+```bash
+python scripts/fuzz.py --attempts 50000
+```
+
+Fires 50,000 randomly generated hostile purchase requests — random product, random quantity up to several thousand units, random merchant, random claimed price, random or forged mandate ids — directly at the guardrail, and checks one thing after every single one: did any mandate's cap get exceeded.
+
+**Latest run: 50,000 attempts, 0 cap violations.** ~₹546 crore in intended spend across every attempt, ~₹33 lakh actually charged — all of it the legitimate purchases. Full numbers and the committed output: [`MEASUREMENTS.md`](MEASUREMENTS.md).
 
 ## One-command demo
 

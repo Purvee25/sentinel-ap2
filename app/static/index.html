@@ -70,6 +70,51 @@
   .stat .note { font-size: 13.5px; color: #8ba0ba; margin-top: 8px; }
   @media (max-width: 1100px) { .stat .val { font-size: 36px; } .scoreboard { gap: 36px; } }
 
+  /* fuzz-proof hero band — fetched live from /fuzz-report, not hardcoded */
+  .proof {
+    background: linear-gradient(135deg, #0d1b33 0%, var(--navy) 60%, #1a3466 100%);
+    color: #fff; padding: 30px 32px 34px; position: relative; overflow: hidden;
+  }
+  .proof::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(600px 240px at 85% 0%, rgba(48,94,255,.35), transparent 70%);
+  }
+  .proof-inner { max-width: 1520px; margin: 0 auto; position: relative; }
+  .proof-tag {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700;
+    letter-spacing: .09em; text-transform: uppercase; color: #9db0c9; margin-bottom: 14px;
+  }
+  .proof-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: #5cd6a0; }
+  .proof-grid { display: flex; gap: 48px; align-items: flex-end; flex-wrap: wrap; }
+  .proof-headline { flex: 1 1 340px; }
+  .proof-headline .big {
+    font-family: var(--mono); font-weight: 700; letter-spacing: -0.03em; line-height: 1;
+    font-size: 64px; display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+  }
+  .proof-headline .big .n1 { color: #fff; }
+  .proof-headline .big .x { font-size: 28px; color: #5f7799; font-weight: 500; }
+  .proof-headline .big .n2 { color: #5cd6a0; }
+  .proof-headline .cap {
+    margin-top: 10px; font-size: 15px; color: #b9cbff; max-width: 46ch; line-height: 1.5;
+  }
+  .proof-headline .cap b { color: #fff; }
+  .proof-bars { flex: 1 1 320px; min-width: 280px; }
+  .proof-bars .lab {
+    font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: #7f93ad; font-weight: 700; margin-bottom: 10px;
+  }
+  .bar-row { display: grid; grid-template-columns: 118px 1fr 52px; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .bar-row .rk { font-size: 12.5px; color: #cddaee; }
+  .bar-track { height: 8px; border-radius: 5px; background: rgba(255,255,255,.09); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #ff8b80, #ff5c4d); }
+  .bar-row .rn { font-family: var(--mono); font-size: 12px; color: #9db0c9; text-align: right; }
+  .proof-cmd {
+    margin-top: 20px; font-family: var(--mono); font-size: 12.5px; color: #7f93ad;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .proof-cmd code { color: #cddaee; }
+  .proof.loading .proof-headline .big { opacity: .35; }
+
   main {
     display: grid; grid-template-columns: 376px minmax(0, 1fr); gap: 20px;
     padding: 22px 32px 56px; align-items: start; max-width: 1520px;
@@ -186,22 +231,47 @@
   </div>
   <div class="scoreboard">
     <div class="stat attempted">
-      <div class="lab">Agent attempted</div>
+      <div class="lab">This session · attempted</div>
       <div class="val" id="s-attempted">₹0.00</div>
       <div class="note"><span id="s-count">0</span> purchase requests</div>
     </div>
     <div class="stat blocked">
-      <div class="lab">Blocked</div>
+      <div class="lab">This session · blocked</div>
       <div class="val" id="s-blocked">₹0.00</div>
       <div class="note"><span id="s-blocks">0</span> refused at the guardrail</div>
     </div>
     <div class="stat allowed">
-      <div class="lab">Actually charged</div>
+      <div class="lab">This session · charged</div>
       <div class="val" id="s-allowed">₹0.00</div>
       <div class="note">against a <span id="s-cap">—</span> mandate</div>
     </div>
   </div>
 </header>
+
+<section class="proof loading" id="proof">
+  <div class="proof-inner">
+    <div class="proof-tag"><span class="dot"></span> Loaded live from /fuzz-report — not a hardcoded figure</div>
+    <div class="proof-grid">
+      <div class="proof-headline">
+        <div class="big">
+          <span class="n1" id="p-attempts">—</span>
+          <span class="x">attempts →</span>
+          <span class="n2" id="p-violations">—</span>
+        </div>
+        <div class="cap">
+          Randomly generated hostile purchase requests fired directly at the guardrail —
+          random product, random quantity, random merchant, random claimed price, random or
+          forged mandate ids. <b>Every mandate's cap held.</b>
+        </div>
+      </div>
+      <div class="proof-bars">
+        <div class="lab">Where they died</div>
+        <div id="p-bars"></div>
+        <div class="proof-cmd">$ <code>python scripts/fuzz.py --attempts 50000</code></div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <main>
   <div>
@@ -416,7 +486,42 @@ async function attackPrice() {
                     client_claimed_price_paise: 1 }, "Cart price tampering", priceOf(target()));
 }
 
+const REASON_LABELS = {
+  "merchant mismatch": "Merchant mismatch",
+  "exceeds mandate cap": "Exceeds cap",
+  "price mismatch": "Price mismatch",
+  "mandate not found": "Forged mandate",
+  "already used": "Replayed",
+};
+
+async function loadProof() {
+  const el = document.getElementById("proof");
+  try {
+    const r = await fetch("/fuzz-report");
+    if (!r.ok) throw new Error("no report");
+    const report = await r.json();
+
+    document.getElementById("p-attempts").textContent = report.attempts.toLocaleString("en-IN");
+    document.getElementById("p-violations").textContent =
+      report.cap_violations.length === 0 ? "0 violations" : `${report.cap_violations.length} violations`;
+
+    const reasons = Object.entries(report.rejection_reasons || {}).sort((a, b) => b[1] - a[1]);
+    const max = Math.max(...reasons.map(([, n]) => n), 1);
+    document.getElementById("p-bars").innerHTML = reasons.map(([key, n]) => `
+      <div class="bar-row">
+        <span class="rk">${REASON_LABELS[key] || key}</span>
+        <span class="bar-track"><span class="bar-fill" style="width:${Math.max(4, (n / max) * 100)}%"></span></span>
+        <span class="rn">${n.toLocaleString("en-IN")}</span>
+      </div>`).join("");
+
+    el.classList.remove("loading");
+  } catch {
+    el.style.display = "none"; // no report committed yet — hide rather than show broken state
+  }
+}
+
 loadCatalog();
+loadProof();
 </script>
 </body>
 </html>

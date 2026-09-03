@@ -1,7 +1,8 @@
+import json
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -10,6 +11,7 @@ from app.database import Base, SessionLocal, engine
 from app.routers import audit, mandates, purchase
 
 STATIC_DIR = Path(__file__).parent / "static"
+FUZZ_REPORT_PATH = Path(__file__).parent.parent / "fuzz_report.json"
 
 
 @asynccontextmanager
@@ -38,6 +40,15 @@ app.include_router(audit.router)
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/fuzz-report", include_in_schema=False)
+def fuzz_report():
+    """Serves the committed output of scripts/fuzz.py so the dashboard's
+    scale claim is read from the actual artifact, not hardcoded in the page."""
+    if not FUZZ_REPORT_PATH.exists():
+        raise HTTPException(status_code=404, detail="no fuzz report committed yet")
+    return json.loads(FUZZ_REPORT_PATH.read_text())
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

@@ -9,7 +9,19 @@ execution failures, not policy ones.
 import logging
 import uuid
 
+import requests
+
 from app.config import razorpay_credentials, razorpay_live_mode
+
+_TIMEOUT_SECONDS = 10
+
+
+class _TimeoutSession(requests.Session):
+    """requests.Session that enforces a default timeout on every call."""
+
+    def request(self, method, url, **kwargs):  # type: ignore[override]
+        kwargs.setdefault("timeout", _TIMEOUT_SECONDS)
+        return super().request(method, url, **kwargs)
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +42,7 @@ def _get_client():
         import razorpay  # imported lazily: not needed at all in mock mode
 
         key_id, key_secret = razorpay_credentials()
-        _client = razorpay.Client(auth=(key_id, key_secret))
+        _client = razorpay.Client(session=_TimeoutSession(), auth=(key_id, key_secret))
         _client.set_app_details({"title": "Sentinel-AP2", "version": "0.1.0"})
     return _client
 

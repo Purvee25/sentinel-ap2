@@ -56,6 +56,8 @@ Every attempt, accepted or rejected, gets an audit entry with a reason.
 
 The reason prompt injection doesn't work here isn't that I filter for it. It's that no text an LLM produces — or that a malicious product listing contains — is ever read to make a money decision. Prices come from the database, totals are computed server-side, limits are plain integer comparisons in `app/guardrail.py`.
 
+**The LLM-free zone:** mandate signature verification, catalog price lookup, cap arithmetic, and Razorpay order creation are all deterministic code. No LLM touches any money decision. The only LLM in the project is `app/agent.py` — the buyer, not the guardrail. This means the security property holds regardless of model behavior.
+
 ```
 agent  ──{mandate_id, merchant_id, product_id, qty}──▶  FastAPI
                                                           │
@@ -195,6 +197,15 @@ Wipes state, starts the container, waits for health, runs the walkthrough: one a
 - No auth system. A single mandate issuer is enough to demonstrate enforcement.
 - Not AP2/ACP/UAP spec-compliant. The mandate format is modeled on their bounded-authorization pattern, not certified against any of them.
 - Five products, one merchant, single-use mandates. Narrow on purpose.
+
+## What broke
+
+- **`pkg_resources` missing from modern setuptools** — `razorpay` 1.4.2 imports it at module load; setuptools 81+ dropped it entirely. Lazy-importing the SDK hid the crash until real credentials were added, at which point it resurfaced in the only live branch with a misleading "bad credentials" message (client construction was inside the `PaymentExecutionError` try block). → Upgraded to `razorpay` 2.0.1, moved client construction outside the error wrapper, and added a separate `ImportError` catch in `verify_razorpay.py`.
+- **Razorpay fails closed — mandate consumed even if the payment errors** — if Razorpay fails after the guardrail has said yes, reopening the mandate would hand the caller a free retry against authorization already spent; from inside the process there's no way to know whether the order was actually created before the failure. → The mandate stays consumed; the purchase is recorded as `failed` with an audit entry; the user issues a new mandate to retry. `test_payment_failure_does_not_reopen_the_mandate` locks this in.
+- **Prompt injection in catalog data (earbuds)** — one product's description tells any agent reading it to ignore spending limits. The agent may well obey. → Irrelevant: the guardrail never reads product descriptions. The purchase fails on `29995000 > 150000` — integer arithmetic, no text involved.
+- **`/simulate` (and `/run`) endpoint returning 500** — the live path was never exercised until real Razorpay keys were added, because mock mode swallowed the import error. A green test suite against mock mode gave no signal about the live branch. → Fixed by the SDK upgrade and by forcing `conftest.py` to blank out credential vars so tests always run mock, keeping the suite honest.
+- **`.env` loaded but never read** — `python-dotenv` was pinned and `.env.example` was documented, but nothing called `load_dotenv()`. Anyone following the README would have pasted in correct keys and kept seeing `order_mock_*` ids with no explanation. → Moved config into `app/config.py`, which loads `.env` at startup and reads credentials lazily so import ordering doesn't matter.
+- **Adding credentials silently turned the test suite live** — once a real `.env` existed, `app.config` loaded it for every process including pytest, creating live test-mode orders on every accepted purchase. → `conftest.py` now forces mock mode by setting credential vars to empty strings (not deleting them — `load_dotenv()` skips keys that already exist in the environment, so deletion would have been silently undone).
 
 ## Layout
 

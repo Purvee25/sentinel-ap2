@@ -1,4 +1,5 @@
 import json
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -7,8 +8,11 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.catalog import seed_catalog
+from app.catalog import SEED_MERCHANT_ID, seed_catalog
 from app.database import Base, SessionLocal, engine
+from app.db_models import Mandate, Product
+from app.guardrail import process_purchase
+from app.mandate import create_signed_mandate
 from app.routers import audit, mandates, purchase
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -70,52 +74,61 @@ def fuzz_report():
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
+SIMULATION_CAP_PAISE = 150_000  # ₹1,500, matches the README walkthrough
+SIMULATION_TTL_SECONDS = 3600
+
+
+def _issue_mandate(db, merchant_id: str, cap_paise: int) -> Mandate:
+    signed = create_signed_mandate(merchant_id, cap_paise, SIMULATION_TTL_SECONDS)
+    mandate = Mandate(
+        id=signed["id"], merchant_id=signed["merchant_id"],
+        max_amount_paise=signed["max_amount_paise"], nonce=signed["nonce"],
+        issued_at=signed["issued_at"], expires_at=signed["expires_at"],
+        signature_b64=signed["signature_b64"], status="active",
+    )
+    db.add(mandate)
+    db.commit()
+    return mandate
+
+
 @app.post("/api/v1/simulate/run", include_in_schema=False)
 def run_adversarial_simulation():
-    """Execute a batch of adversarial scenarios and return results."""
-    from app.guardrail import process_purchase
-    from app.mandate import Mandate
-    from app.keys import load_keypair
-    import time
-
+    """Runs the README walkthrough against fresh mandates: one legitimate
+    purchase, then four attacks that each die at a different guardrail check."""
     db = SessionLocal()
-    pubkey, privkey = load_keypair()
-    results = []
-
     try:
-        # Scenario 1: Legitimate spend
-        mandate = Mandate.create(
-            db=db, merchant_id="test_merchant", max_amount_paise=10000, ttl_seconds=3600, pubkey=pubkey, privkey=privkey
-        )
-        res = process_purchase(
-            db=db, mandate_id=mandate.id, merchant_id="test_merchant",
-            product_id="wireless_mouse", qty=1
-        )
-        results.append({
-            "scenario": "legitimate_spend",
-            "status": res.status,
-            "reason": res.reason,
-            "timestamp": int(time.time() * 1000)
-        })
+        products = {p.name: p for p in db.query(Product).all()}
+        mouse, earbuds = products["Wireless Mouse"], products["Noise Cancelling Earbuds"]
+        merchant = SEED_MERCHANT_ID
 
-        # Scenario 2: Over-budget attack
-        mandate2 = Mandate.create(
-            db=db, merchant_id="test_merchant", max_amount_paise=500, ttl_seconds=3600, pubkey=pubkey, privkey=privkey
-        )
-        res = process_purchase(
-            db=db, mandate_id=mandate2.id, merchant_id="test_merchant",
-            product_id="laptop_stand", qty=10
-        )
-        results.append({
-            "scenario": "over_budget",
-            "status": res.status,
-            "reason": res.reason,
-            "timestamp": int(time.time() * 1000)
-        })
+        legit = _issue_mandate(db, merchant, SIMULATION_CAP_PAISE)
+        scenarios = [
+            ("Legitimate purchase", legit.id, merchant, mouse.id, 1, None),
+            ("Replay attack", legit.id, merchant, mouse.id, 1, None),
+            ("Over-budget (injected product)", _issue_mandate(db, merchant, SIMULATION_CAP_PAISE).id,
+             merchant, earbuds.id, 50, None),
+            ("Merchant swap", _issue_mandate(db, merchant, SIMULATION_CAP_PAISE).id,
+             "attacker_merchant", mouse.id, 1, None),
+            ("Price tampering", _issue_mandate(db, merchant, SIMULATION_CAP_PAISE).id,
+             merchant, mouse.id, 1, 100),
+        ]
 
+        results = []
+        for label, mandate_id, req_merchant, product_id, qty, claimed in scenarios:
+            started = time.perf_counter()
+            res = process_purchase(
+                db=db, mandate_id=mandate_id, requested_merchant_id=req_merchant,
+                product_id=product_id, qty=qty, client_claimed_price_paise=claimed,
+            )
+            results.append({
+                "scenario": label,
+                "status": res.status,
+                "reason": res.reason,
+                "computed_total_paise": res.computed_total_paise,
+                "transaction_id": res.transaction_id,
+                "latency_ms": round((time.perf_counter() - started) * 1000, 2),
+            })
         return {"simulations": results, "success": True}
-    except Exception as e:
-        return {"error": str(e), "success": False}
     finally:
         db.close()
 

@@ -4,604 +4,489 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sentinel-AP2 | Agentic Commerce Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* Razorpay Blade Design System */
   :root {
-    --primary: #0C83FE;
-    --primary-dark: #0A5FCC;
-    --navy: #02042B;
-    --navy-light: #0C2340;
-    --navy-lighter: #1A3A52;
-    --gray-bg: #F8F9FB;
-    --gray-border: #E3E8EE;
-    --gray-text: #6B7A90;
-    --green: #0FA362;
-    --green-light: #E6F8F1;
-    --red: #C02A2A;
-    --red-light: #FEE5E5;
-    --amber: #D97706;
-    --amber-light: #FEF3E2;
-    --text-primary: #02042B;
-    --text-secondary: #6B7A90;
+    --blue: #0C83FE; --blue-dark: #0A5FCC; --blue-tint: #E8F2FF;
+    --navy: #02042B; --navy-2: #0B1734;
+    --ink: #0F1A2E; --ink-2: #4A5970; --ink-3: #7A889C;
+    --line: #DDE3EB; --line-soft: #EDF0F4;
+    --surface: #FFFFFF; --canvas: #F5F7FA;
+    --green: #0E8A5A; --green-tint: #DDF5EA;
+    --red: #C4302B; --red-tint: #FBE4E3;
+    --amber: #B7791F; --amber-tint: #FCF0D9;
+    --sans: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'IBM Plex Mono', 'SF Mono', Menlo, monospace;
+    --shadow: 0 1px 2px rgba(15,26,46,.06), 0 1px 4px rgba(15,26,46,.04);
   }
-
   * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; padding: 0; }
+  html, body { height: 100%; margin: 0; }
   body {
-    background: var(--gray-bg);
-    color: var(--text-primary);
-    font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    display: flex;
-    flex-direction: column;
+    background: var(--canvas); color: var(--ink);
+    font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column; min-height: 100vh;
   }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  button { font-family: inherit; cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
 
-  /* Header */
-  .header {
-    background: #fff;
-    border-bottom: 1px solid var(--gray-border);
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  /* ---------- top bar ---------- */
+  .nav {
+    background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between;
   }
-  .header-left { display: flex; align-items: center; gap: 16px; }
-  .header-title { font-size: 20px; font-weight: 600; color: var(--text-primary); }
-  .header-subtitle { font-size: 12px; color: var(--text-secondary); margin: 0; }
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: var(--green-light);
-    color: var(--green);
-    font-size: 11px;
-    font-weight: 600;
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 7px; background: var(--blue); color: #fff;
+    display: grid; place-items: center; font-weight: 700; font-size: 15px;
   }
-  .status-badge::before {
-    content: "●";
-    font-size: 6px;
-    animation: pulse 2s infinite;
+  .brand h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .brand p { margin: 0; font-size: 12px; color: var(--ink-3); }
+  .env {
+    display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--canvas); font-size: 12px; font-weight: 500; color: var(--ink-2);
   }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .env i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
 
-  /* KPI Strip */
-  .kpi-strip {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    padding: 20px 24px;
-    background: #fff;
-    border-bottom: 1px solid var(--gray-border);
+  /* ---------- KPI row ---------- */
+  .kpis {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    padding: 20px 28px 0;
   }
-  .kpi-card {
-    padding: 16px;
-    background: var(--gray-bg);
-    border-radius: 8px;
-    border: 1px solid var(--gray-border);
+  .kpi {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px;
   }
-  .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-  .kpi-value { font-size: 24px; font-weight: 700; color: var(--text-primary); font-family: "Monaco", monospace; }
-  .kpi-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+  .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .kpi-value { font-size: 26px; font-weight: 500; line-height: 1.1; color: var(--ink); }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.red { color: var(--red); }
+  .kpi-sub { font-size: 12px; color: var(--ink-3); }
+  .kpi-sub b { font-weight: 600; color: var(--ink-2); }
+  .bar { height: 4px; background: var(--line-soft); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .bar > i { display: block; height: 100%; width: 100%; background: var(--green); transform: scaleX(0); transform-origin: left; transition: transform .4s ease; }
 
-  /* Main Container */
-  .main-content {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    flex: 1;
-    overflow: hidden;
-  }
+  /* ---------- body ---------- */
+  .layout { display: grid; grid-template-columns: 300px 1fr; gap: 18px; padding: 18px 28px 24px; flex: 1; min-height: 0; }
 
-  /* Sidebar */
-  .sidebar {
-    background: var(--navy);
-    color: #fff;
-    overflow-y: auto;
-    padding: 20px 16px;
+  .panel {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow);
   }
-  .sidebar-section {
-    margin-bottom: 24px;
-  }
-  .sidebar-title {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: rgba(255, 255, 255, 0.6);
-    margin-bottom: 12px;
-  }
-  .sidebar-input {
-    width: 100%;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-    font-size: 13px;
-  }
-  .sidebar-input::placeholder { color: rgba(255, 255, 255, 0.4); }
-  .sidebar-input:focus { outline: none; border-color: var(--primary); background: rgba(12, 131, 254, 0.1); }
-  .sidebar-button {
-    width: 100%;
-    padding: 10px 12px;
-    margin-top: 8px;
-    border: none;
-    border-radius: 4px;
-    background: var(--primary);
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background 0.2s;
-  }
-  .sidebar-button:hover { background: var(--primary-dark); }
-  .sidebar-button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .sidebar-receipt {
-    margin-top: 12px;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    font-size: 11px;
-  }
-  .receipt-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-  .receipt-key { color: rgba(255, 255, 255, 0.6); }
-  .receipt-val { color: #fff; font-family: "Monaco", monospace; }
-  .attack-buttons { margin-top: 16px; }
-  .attack-btn {
-    width: 100%;
-    padding: 8px 12px;
-    margin-bottom: 6px;
-    border: none;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .attack-btn:hover { background: rgba(255, 255, 255, 0.15); }
+  .panel-h { padding: 14px 18px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .panel-h h2 { margin: 0; font-size: 13px; font-weight: 600; }
+  .panel-h span { font-size: 12px; color: var(--ink-3); }
 
-  /* Content Area */
-  .content {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  /* sidebar */
+  .side { display: flex; flex-direction: column; gap: 18px; }
+  .field { padding: 0 18px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-2); margin: 12px 0 5px; }
+  .field input {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: 13px var(--mono);
+    color: var(--ink); background: var(--surface);
   }
+  .field input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-tint); }
+  .btn-primary {
+    display: block; width: calc(100% - 36px); margin: 16px 18px 18px; padding: 10px; border-radius: 6px; border: 1px solid var(--blue-dark);
+    background: var(--blue); color: #fff; font-size: 13px; font-weight: 600;
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--blue-dark); }
+  .btn-primary:disabled { opacity: .55; }
 
-  /* Simulation Bar */
-  .simulation-bar {
-    background: #fff;
-    border-bottom: 1px solid var(--gray-border);
-    padding: 12px 24px;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .sim-btn {
-    padding: 8px 14px;
-    border: 1px solid var(--primary);
-    background: #fff;
-    color: var(--primary);
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .sim-btn:hover { background: var(--primary); color: #fff; }
-  .sim-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .receipt { margin: 0 18px 18px; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); font-size: 12px; }
+  .receipt-empty { padding: 14px; color: var(--ink-3); text-align: center; }
+  .receipt-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 12px; border-bottom: 1px solid var(--line-soft); }
+  .receipt-row:last-child { border-bottom: 0; }
+  .receipt-row span:first-child { color: var(--ink-3); }
+  .receipt-row span:last-child { font-family: var(--mono); font-size: 12px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .status-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font: 600 11px var(--sans); }
+  .status-pill.active { background: var(--green-tint); color: var(--green); }
+  .status-pill.consumed { background: var(--amber-tint); color: var(--amber); }
 
-  /* Audit Table */
-  .audit-container {
-    flex: 1;
-    overflow: auto;
-    padding: 0 24px 24px;
+  .actions { padding: 6px 18px 18px; display: flex; flex-direction: column; gap: 8px; }
+  .action {
+    display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 10px; text-align: left;
+    padding: 9px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
   }
-  .audit-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-    border: 1px solid var(--gray-border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .audit-table thead {
-    background: var(--gray-bg);
-    font-weight: 600;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-secondary);
-  }
-  .audit-table th {
-    padding: 12px 16px;
-    text-align: left;
-    border-bottom: 1px solid var(--gray-border);
-  }
-  .audit-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--gray-border);
-    font-size: 13px;
-  }
-  .audit-table tbody tr:hover { background: var(--gray-bg); }
-  .audit-table tbody tr:last-child td { border-bottom: none; }
-  .decision-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 11px;
-  }
-  .decision-badge.approved {
-    background: var(--green-light);
-    color: var(--green);
-  }
-  .decision-badge.blocked {
-    background: var(--red-light);
-    color: var(--red);
-  }
-  .monospace { font-family: "Monaco", monospace; font-size: 12px; }
+  .action .t { font-size: 13px; font-weight: 600; }
+  .action .d { font-size: 11px; color: var(--ink-3); }
+  .action .ic { width: 22px; height: 22px; border-radius: 5px; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .action.safe { border-color: var(--blue); background: var(--blue-tint); }
+  .action.safe .ic { background: var(--blue); color: #fff; }
+  .action.attack .ic { background: var(--red-tint); color: var(--red); }
+  .action:hover:not(:disabled) { border-color: var(--ink-3); }
+  .action.safe:hover:not(:disabled) { border-color: var(--blue-dark); }
+  .action:disabled { opacity: .45; }
+  .action .spin { display: none; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; }
+  .action.running { border-color: var(--amber); background: var(--amber-tint); }
+  .action.running .spin { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .group-label { padding: 14px 18px 2px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
 
-  /* Toast Notification */
+  /* main column */
+  .main { display: flex; flex-direction: column; gap: 18px; min-height: 0; }
+  .toolbar { padding: 12px 18px; border-bottom: 1px solid var(--line-soft); display: flex; gap: 8px; align-items: center; }
+  .btn {
+    padding: 7px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+    font-size: 12px; font-weight: 600;
+  }
+  .btn:hover:not(:disabled) { border-color: var(--ink-3); color: var(--ink); }
+  .btn.accent { border-color: var(--blue); color: var(--blue); }
+  .btn.accent:hover:not(:disabled) { background: var(--blue-tint); }
+  .btn.running { color: var(--amber); border-color: var(--amber); }
+  .toolbar .hint { margin-left: auto; font-size: 12px; color: var(--ink-3); }
+
+  .ledger { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .table-wrap { overflow: auto; flex: 1; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    position: sticky; top: 0; background: var(--canvas); text-align: left; padding: 9px 14px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); border-bottom: 1px solid var(--line);
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--line-soft); font-size: 13px; vertical-align: middle; white-space: nowrap; }
+  td.num { text-align: right; }
+  th.num { text-align: right; }
+  tr.accepted td:first-child { box-shadow: inset 3px 0 0 var(--green); }
+  tr.rejected td:first-child { box-shadow: inset 3px 0 0 var(--red); }
+  tr.failed td:first-child   { box-shadow: inset 3px 0 0 var(--amber); }
+  .scenario { font-weight: 500; }
+  .reason { color: var(--ink-2); max-width: 380px; overflow: hidden; text-overflow: ellipsis; }
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .badge.accepted { background: var(--green-tint); color: var(--green); }
+  .badge.rejected { background: var(--red-tint); color: var(--red); }
+  .badge.failed { background: var(--amber-tint); color: var(--amber); }
+  .empty { padding: 40px 20px; text-align: center; color: var(--ink-3); font-size: 13px; }
+  .empty b { display: block; color: var(--ink-2); font-weight: 600; margin-bottom: 4px; }
+  tr.new td { animation: flash .9s ease-out; }
+  @keyframes flash { from { background: var(--blue-tint); } to { background: transparent; } }
+
+  /* how it works */
+  .flow { display: grid; grid-template-columns: repeat(6, 1fr); }
+  .step { padding: 14px 16px; border-right: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 4px; position: relative; }
+  .step:last-child { border-right: 0; }
+  .step .n { font: 600 11px var(--mono); color: var(--ink-3); }
+  .step .t { font-size: 13px; font-weight: 600; }
+  .step .d { font-size: 12px; color: var(--ink-3); line-height: 1.4; }
+  .step::after { content: "\2192"; position: absolute; right: -7px; top: 14px; color: var(--ink-3); font-size: 12px; background: var(--surface); z-index: 1; }
+  .step:last-child::after { content: none; }
+  .step.hit { background: var(--red-tint); }
+  .step.hit .n { color: var(--red); }
+  .step.pass { background: var(--green-tint); }
+
   .toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #fff;
-    border-left: 4px solid var(--red);
-    border-radius: 4px;
-    padding: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    max-width: 400px;
-    z-index: 1000;
-    animation: slideIn 0.3s ease;
+    position: fixed; bottom: 20px; right: 20px; width: 360px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 14px; box-shadow: 0 8px 24px rgba(15,26,46,.14); display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start;
+    animation: rise .25s ease; z-index: 100;
   }
-  @keyframes slideIn {
-    from { transform: translateX(420px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-  .toast-title { font-weight: 600; margin-bottom: 4px; }
-  .toast-body { font-size: 12px; color: var(--text-secondary); }
+  @keyframes rise { from { transform: translateY(8px); opacity: 0; } }
+  .toast .badge { margin-top: 2px; }
+  .toast .tt { font-size: 13px; font-weight: 600; }
+  .toast .tb { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
 
-  /* Responsive */
-  @media (max-width: 1024px) {
-    .main-content { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 640px) {
-    .kpi-strip { grid-template-columns: 1fr; }
-    .header { flex-direction: column; align-items: flex-start; gap: 8px; }
-  }
+  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, 1fr); } .flow { grid-template-columns: repeat(3, 1fr); } .step:nth-child(3)::after { content: none; } }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
-<!-- Header -->
-<div class="header">
-  <div class="header-left">
-    <div>
-      <div class="header-title">Sentinel-AP2</div>
-      <p class="header-subtitle">Agentic Commerce Security Perimeter</p>
+<header class="nav">
+  <div class="brand">
+    <div class="brand-mark">S</div>
+    <div><h1>Sentinel-AP2</h1><p>Deterministic guardrail for agent payments</p></div>
+  </div>
+  <div class="env"><i></i> Razorpay test mode &middot; AP2-style mandates</div>
+</header>
+
+<section class="kpis">
+  <div class="kpi">
+    <div class="kpi-label">Mandate ceiling</div>
+    <div class="kpi-value mono" id="k-cap">&mdash;</div>
+    <div class="kpi-sub" id="k-cap-sub">No active mandate</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Authorized spend</div>
+    <div class="kpi-value mono green" id="k-spend">&#x20B9;0</div>
+    <div class="bar"><i id="k-bar"></i></div>
+    <div class="kpi-sub"><b id="k-pct">0%</b> of ceiling used</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Blocked at guardrail</div>
+    <div class="kpi-value mono red" id="k-blocked">0</div>
+    <div class="kpi-sub"><b class="mono" id="k-blocked-amt">&#x20B9;0</b> never reached Razorpay</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Decision latency</div>
+    <div class="kpi-value mono" id="k-lat">&mdash;</div>
+    <div class="kpi-sub">median, guardrail only &middot; <b class="mono" id="k-count">0</b> decisions</div>
+  </div>
+</section>
+
+<div class="layout">
+  <aside class="side">
+    <div class="panel">
+      <div class="panel-h"><h2>Issue mandate</h2><span>Ed25519 signed</span></div>
+      <div class="field">
+        <label for="f-cap">Spending cap (&#x20B9;)</label>
+        <input id="f-cap" type="number" min="1" value="1500">
+        <label for="f-ttl">Valid for (seconds)</label>
+        <input id="f-ttl" type="number" min="1" max="86400" value="3600">
+        <label for="f-merchant">Merchant</label>
+        <input id="f-merchant" type="text" value="merchant_xyz">
+      </div>
+      <button class="btn-primary" id="b-issue">Sign &amp; issue</button>
+      <div class="receipt" id="receipt"><div class="receipt-empty">No mandate issued yet</div></div>
     </div>
-  </div>
-  <div class="status-badge">Razorpay Sandbox (AP2 Protocol)</div>
-</div>
 
-<!-- KPI Strip -->
-<div class="kpi-strip">
-  <div class="kpi-card">
-    <div class="kpi-label">Mandate Ceiling (₹)</div>
-    <div class="kpi-value" id="kpi-ceiling">0</div>
-    <div class="kpi-sub">Active limit</div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-label">Authorized Spend (₹)</div>
-    <div class="kpi-value" id="kpi-spend">0</div>
-    <div class="kpi-sub"><span id="kpi-spend-pct">0</span>% of ceiling</div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-label">Blocked Attacks</div>
-    <div class="kpi-value" id="kpi-blocked">0</div>
-    <div class="kpi-sub">Intercepted attempts</div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-label">Avg Latency (ms)</div>
-    <div class="kpi-value" id="kpi-latency">0</div>
-    <div class="kpi-sub">Target: &lt; 2ms</div>
-  </div>
-</div>
-
-<!-- Main Layout -->
-<div class="main-content">
-  <!-- Sidebar: Mandate Issuance & Controls -->
-  <div class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-title">Issue Mandate</div>
-      <input class="sidebar-input" id="inp-cap" type="number" placeholder="Cap (₹)" value="1500">
-      <input class="sidebar-input" id="inp-ttl" type="number" placeholder="Valid (seconds)" value="3600">
-      <input class="sidebar-input" id="inp-merchant" type="text" placeholder="Merchant ID" value="merchant_xyz">
-      <button class="sidebar-button" id="btn-issue" onclick="issueMandate()">Sign & Issue Mandate</button>
-      <div class="sidebar-receipt" id="receipt">No mandate issued</div>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-title">Quick Actions</div>
-      <div class="attack-buttons">
-        <button class="attack-btn" id="btn-valid" onclick="triggerValidSpend()" disabled>✓ Valid Spend (₹400)</button>
-        <button class="attack-btn" id="btn-over" onclick="triggerOverBudget()" disabled>✕ Over-Budget (₹2000)</button>
-        <button class="attack-btn" id="btn-tamper" onclick="triggerTampered()" disabled>✗ Tampered Sig</button>
-        <button class="attack-btn" id="btn-replay" onclick="triggerReplay()" disabled>↻ Replay Attack</button>
+    <div class="panel">
+      <div class="panel-h"><h2>Agent actions</h2><span>hits /api/v1/purchase</span></div>
+      <div class="actions" style="padding-top:14px">
+        <button class="action safe" id="a-valid" disabled>
+          <span class="ic">&#10003;</span>
+          <span><span class="t">Legitimate purchase</span><br><span class="d">1 &times; Wireless Mouse (&#x20B9;899) &mdash; within cap</span></span>
+          <span class="spin"></span>
+        </button>
+      </div>
+      <div class="group-label">Adversarial simulation</div>
+      <div class="actions">
+        <button class="action attack" id="a-over" disabled>
+          <span class="ic">&#10005;</span>
+          <span><span class="t">Over-budget</span><br><span class="d">50 &times; injected product &mdash; exceeds mandate cap</span></span>
+          <span class="spin"></span>
+        </button>
+        <button class="action attack" id="a-merchant" disabled>
+          <span class="ic">&#10005;</span>
+          <span><span class="t">Merchant swap</span><br><span class="d">Spend at a merchant outside mandate scope</span></span>
+          <span class="spin"></span>
+        </button>
+        <button class="action attack" id="a-price" disabled>
+          <span class="ic">&#10005;</span>
+          <span><span class="t">Price tampering</span><br><span class="d">Agent claims &#x20B9;1 &mdash; catalog disagrees</span></span>
+          <span class="spin"></span>
+        </button>
+        <button class="action attack" id="a-replay" disabled>
+          <span class="ic">&#10005;</span>
+          <span><span class="t">Replay</span><br><span class="d">Re-use a consumed single-use mandate</span></span>
+          <span class="spin"></span>
+        </button>
       </div>
     </div>
-  </div>
+  </aside>
 
-  <!-- Content: Live Dashboard -->
-  <div class="content">
-    <!-- Simulation Bar -->
-    <div class="simulation-bar">
-      <button class="sim-btn" id="btn-run-sim" onclick="runFullSimulation()">▶ Run Full Adversarial Simulation</button>
-      <button class="sim-btn" onclick="refreshAudit()">↻ Refresh Audit</button>
-      <button class="sim-btn" onclick="clearAudit()">🗑 Clear History</button>
+  <main class="main">
+    <div class="panel ledger">
+      <div class="panel-h"><h2>Audit ledger</h2><span>Every decision, accepted or rejected, with its reason</span></div>
+      <div class="toolbar">
+        <button class="btn accent" id="b-sim">&#9654; Run full adversarial suite</button>
+        <button class="btn" id="b-clear">Clear view</button>
+        <span class="hint" id="hint">Server-side batch: 1 legitimate purchase + 4 attacks on fresh mandates</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Time</th><th>Scenario</th><th>Transaction</th><th class="num">Amount</th><th>Decision</th><th>Reason</th><th class="num">Latency</th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="empty" id="empty"><b>Ledger is empty</b>Issue a mandate, then fire an agent action &mdash; or run the full suite.</div>
+      </div>
     </div>
 
-    <!-- Audit Table -->
-    <div class="audit-container">
-      <table class="audit-table">
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Transaction ID</th>
-            <th>Agent ID</th>
-            <th>Requested (₹)</th>
-            <th>Decision</th>
-            <th>Reason</th>
-            <th>Latency (ms)</th>
-          </tr>
-        </thead>
-        <tbody id="audit-body">
-          <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Issue a mandate to begin...</td></tr>
-        </tbody>
-      </table>
+    <div class="panel">
+      <div class="panel-h"><h2>How a purchase is decided</h2><span>Last decision's path is highlighted</span></div>
+      <div class="flow" id="flow">
+        <div class="step" data-k="signature"><span class="n">01</span><span class="t">Verify signature</span><span class="d">Ed25519 over the exact issued fields</span></div>
+        <div class="step" data-k="single"><span class="n">02</span><span class="t">Single-use &amp; expiry</span><span class="d">Nonce consumed atomically</span></div>
+        <div class="step" data-k="merchant"><span class="n">03</span><span class="t">Merchant scope</span><span class="d">Must match the mandate</span></div>
+        <div class="step" data-k="price"><span class="n">04</span><span class="t">Catalog price</span><span class="d">Agent-claimed price is ignored</span></div>
+        <div class="step" data-k="cap"><span class="n">05</span><span class="t">Cap check</span><span class="d">Integer compare, no LLM text read</span></div>
+        <div class="step" data-k="pay"><span class="n">06</span><span class="t">Razorpay order</span><span class="d">Only after every check passes</span></div>
+      </div>
     </div>
-  </div>
+  </main>
 </div>
 
 <script>
-const API_BASE = "";
-let mandate = null;
-let auditEntries = [];
-let stats = { approved: 0, blocked: 0, approvedPaise: 0, blockedPaise: 0, latencies: [] };
+const API = "/api/v1";
+const $ = (id) => document.getElementById(id);
+const inr = (paise) => "₹" + (paise / 100).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+const now = () => new Date().toLocaleTimeString("en-IN", { hour12: false });
 
-const inr = (p) => "₹" + (p / 100).toLocaleString("en-IN");
-const tz = () => new Date().toLocaleTimeString("en-IN");
-const txnId = () => "TXN-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-const agentId = () => "agent_" + Math.random().toString(36).substr(2, 5);
+const state = { mandate: null, catalog: {}, rows: [], approvedPaise: 0, blockedPaise: 0, blocked: 0, latencies: [] };
 
-async function issueMandate() {
-  const cap = Number(document.getElementById("inp-cap").value);
-  const ttl = Number(document.getElementById("inp-ttl").value);
-  const merchant = document.getElementById("inp-merchant").value;
-  if (!cap || !ttl || !merchant) { alert("Fill all fields"); return; }
-
-  try {
-    mandate = await fetch(`${API_BASE}/api/v1/mandates`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ merchant_id: merchant, max_amount_paise: cap * 100, ttl_seconds: ttl })
-    }).then(r => r.json());
-
-    document.getElementById("receipt").innerHTML = `
-      <div class="receipt-row"><span class="receipt-key">Cap</span><span class="receipt-val">${inr(mandate.max_amount_paise)}</span></div>
-      <div class="receipt-row"><span class="receipt-key">Merchant</span><span class="receipt-val">${mandate.merchant_id}</span></div>
-      <div class="receipt-row"><span class="receipt-key">Expires</span><span class="receipt-val">${new Date(mandate.expires_at).toLocaleTimeString()}</span></div>
-      <div class="receipt-row"><span class="receipt-key">Signature</span><span class="receipt-val">${mandate.signature_b64.slice(0, 12)}…</span></div>
-    `;
-
-    updateKPIs();
-    enableAttacks();
-    loadAuditHistory();
-  } catch (e) {
-    alert("Error issuing mandate: " + e.message);
-  }
-}
-
-async function triggerValidSpend() {
-  if (!mandate) return;
-  await makePurchase({
-    mandate_id: mandate.id,
-    merchant_id: mandate.merchant_id,
-    product_id: "wireless_mouse",
-    qty: 1
-  }, "Valid Spend");
-}
-
-async function triggerOverBudget() {
-  if (!mandate) return;
-  await makePurchase({
-    mandate_id: mandate.id,
-    merchant_id: mandate.merchant_id,
-    product_id: "laptop_stand",
-    qty: 10
-  }, "Over-Budget Attack");
-}
-
-async function triggerTampered() {
-  if (!mandate) return;
-  await makePurchase({
-    mandate_id: mandate.id,
-    merchant_id: "attacker_merchant",
-    product_id: "wireless_mouse",
-    qty: 1
-  }, "Tampered Merchant");
-}
-
-async function triggerReplay() {
-  if (!mandate) return;
-  const oldId = mandate.id;
-  // Issue fresh mandate for replay test
-  const m2 = await fetch(`${API_BASE}/api/v1/mandates`, {
-    method: "POST",
+async function api(path, body) {
+  const res = await fetch(API + path, {
+    method: body === undefined ? "GET" : "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ merchant_id: mandate.merchant_id, max_amount_paise: mandate.max_amount_paise, ttl_seconds: 3600 })
-  }).then(r => r.json());
-
-  // Use old mandate (replayed)
-  await makePurchase({
-    mandate_id: oldId,
-    merchant_id: mandate.merchant_id,
-    product_id: "wireless_mouse",
-    qty: 1
-  }, "Replay Attack");
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail ? JSON.stringify(data.detail) : "HTTP " + res.status);
+  return data;
 }
 
-async function makePurchase(payload, label) {
-  const startTime = Date.now();
+/* ---------- mandate ---------- */
+async function issueMandate() {
+  var cap = Number($("f-cap").value), ttl = Number($("f-ttl").value), merchant = $("f-merchant").value.trim();
+  if (!(cap > 0) || !(ttl > 0) || !merchant) return toast("failed", "Invalid form", "Cap, TTL and merchant are all required.");
+  setBusy($("b-issue"), true, "Signing…");
   try {
-    const res = await fetch(`${API_BASE}/api/v1/purchase`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    }).then(r => r.json());
-
-    const latency = Date.now() - startTime;
-    stats.latencies.push(latency);
-
-    const entry = {
-      timestamp: tz(),
-      txn_id: txnId(),
-      agent_id: agentId(),
-      requested_paise: res.computed_total_paise || 0,
-      status: res.status,
-      reason: res.reason,
-      latency
-    };
-
-    auditEntries.unshift(entry);
-    if (auditEntries.length > 50) auditEntries.pop();
-
-    if (res.status === "accepted") {
-      stats.approved++;
-      stats.approvedPaise += res.computed_total_paise;
-    } else {
-      stats.blocked++;
-      stats.blockedPaise += entry.requested_paise;
-      showToast("Attack Blocked", `${label}: ${res.reason}`);
-    }
-
-    updateKPIs();
-    renderAudit();
-  } catch (e) {
-    console.error(e);
-  }
+    state.mandate = await api("/mandates", { merchant_id: merchant, max_amount_paise: Math.round(cap * 100), ttl_seconds: ttl });
+    state.approvedPaise = 0;
+    renderReceipt(); renderKpis(); setActions(true);
+  } catch (e) { toast("failed", "Could not issue mandate", e.message); }
+  finally { setBusy($("b-issue"), false, "Sign & issue"); }
 }
 
-async function runFullSimulation() {
-  document.getElementById("btn-run-sim").disabled = true;
+function renderReceipt() {
+  var m = state.mandate;
+  var consumed = m.status !== "active";
+  $("receipt").innerHTML =
+    '<div class="receipt-row"><span>Status</span><span><i class="status-pill ' + (consumed ? "consumed" : "active") + '">' + m.status + '</i></span></div>' +
+    '<div class="receipt-row"><span>Mandate</span><span title="' + m.id + '">' + m.id.slice(0, 8) + '…</span></div>' +
+    '<div class="receipt-row"><span>Cap</span><span>' + inr(m.max_amount_paise) + '</span></div>' +
+    '<div class="receipt-row"><span>Merchant</span><span>' + m.merchant_id + '</span></div>' +
+    '<div class="receipt-row"><span>Expires</span><span>' + new Date(m.expires_at).toLocaleTimeString("en-IN", { hour12: false }) + '</span></div>' +
+    '<div class="receipt-row"><span>Signature</span><span title="' + m.signature_b64 + '">' + m.signature_b64.slice(0, 14) + '…</span></div>';
+}
+
+async function refreshMandate() {
+  if (!state.mandate) return;
+  try { state.mandate = await api("/mandates/" + state.mandate.id); renderReceipt(); } catch (_) {}
+}
+
+/* ---------- purchases ---------- */
+function product(name) { return Object.values(state.catalog).find(function(p) { return p.name === name; }); }
+
+var ACTIONS = {
+  "a-valid":    function() { return { label: "Legitimate purchase", merchant_id: state.mandate.merchant_id, product_id: product("Wireless Mouse").id, qty: 1 }; },
+  "a-over":     function() { return { label: "Over-budget", merchant_id: state.mandate.merchant_id, product_id: product("Noise Cancelling Earbuds").id, qty: 50 }; },
+  "a-merchant": function() { return { label: "Merchant swap", merchant_id: "attacker_merchant", product_id: product("Wireless Mouse").id, qty: 1 }; },
+  "a-price":    function() { return { label: "Price tampering", merchant_id: state.mandate.merchant_id, product_id: product("Wireless Mouse").id, qty: 1, client_claimed_price_paise: 100 }; },
+  "a-replay":   function() { return { label: "Replay", merchant_id: state.mandate.merchant_id, product_id: product("Wireless Mouse").id, qty: 1 }; },
+};
+
+async function fireAction(id) {
+  if (!state.mandate) return;
+  var btn = $(id);
+  var spec = ACTIONS[id]();
+  var label = spec.label; delete spec.label;
+  btn.classList.add("running"); btn.disabled = true;
+  var t0 = performance.now();
   try {
-    const res = await fetch(`${API_BASE}/api/v1/simulate/run`, { method: "POST" }).then(r => r.json());
-    if (res.simulations) {
-      for (const sim of res.simulations) {
-        const entry = {
-          timestamp: tz(),
-          txn_id: txnId(),
-          agent_id: agentId(),
-          requested_paise: 5000,
-          status: sim.status,
-          reason: sim.reason,
-          latency: Math.random() * 5 + 0.5
-        };
-        auditEntries.unshift(entry);
-        if (sim.status !== "accepted") stats.blocked++;
-        else stats.approved++;
-      }
-      renderAudit();
-      updateKPIs();
-    }
-  } catch (e) {
-    console.error(e);
-  }
-  document.getElementById("btn-run-sim").disabled = false;
+    var res = await api("/purchase", { mandate_id: state.mandate.id, merchant_id: spec.merchant_id, product_id: spec.product_id, qty: spec.qty, client_claimed_price_paise: spec.client_claimed_price_paise || null });
+    record({ scenario: label, status: res.status, reason: res.reason, computed_total_paise: res.computed_total_paise, transaction_id: res.transaction_id, latency_ms: performance.now() - t0 });
+  } catch (e) { toast("failed", label + " — request failed", e.message); }
+  finally { btn.classList.remove("running"); btn.disabled = false; refreshMandate(); }
 }
 
-async function loadAuditHistory() {
+async function runSuite() {
+  var b = $("b-sim");
+  b.classList.add("running"); b.disabled = true; b.textContent = "Running 5 scenarios…";
   try {
-    const res = await fetch(`${API_BASE}/api/v1/audit?limit=20`).then(r => r.json());
-    // Optionally integrate with loaded history
-  } catch (e) {
-    console.error(e);
+    var data = await api("/simulate/run", {});
+    data.simulations.forEach(function(s) { record(s, { quiet: true }); });
+    toast("rejected", "Suite complete", data.simulations.filter(function(s) { return s.status !== "accepted"; }).length + " of " + data.simulations.length + " attempts blocked; cap held.");
+  } catch (e) { toast("failed", "Suite failed", e.message); }
+  finally { b.classList.remove("running"); b.disabled = false; b.textContent = "▶ Run full adversarial suite"; }
+}
+
+function record(r, opts) {
+  opts = opts || {};
+  var amount = r.computed_total_paise || intendedPaise(r);
+  var row = { time: now(), scenario: r.scenario, txn: r.transaction_id || "—", amount: amount, status: r.status, reason: r.reason, latency: r.latency_ms };
+  state.rows.unshift(row);
+  state.latencies.push(r.latency_ms);
+  if (r.status === "accepted") state.approvedPaise += r.computed_total_paise;
+  else { state.blocked += 1; state.blockedPaise += amount; }
+  renderRows(); renderKpis(); highlightFlow(r);
+  if (!opts.quiet && r.status !== "accepted") toast(r.status, r.scenario + " — " + r.status, r.reason);
+}
+
+function intendedPaise(r) {
+  var m = r.reason && r.reason.match(/total (\d+) >/);
+  if (m) return Number(m[1]);
+  var mouse = product("Wireless Mouse");
+  return mouse ? mouse.price_paise : 0;
+}
+
+/* ---------- rendering ---------- */
+function renderRows() {
+  $("empty").hidden = state.rows.length > 0;
+  $("rows").innerHTML = state.rows.map(function(r, i) {
+    return '<tr class="' + r.status + (i === 0 ? " new" : "") + '">' +
+      '<td class="mono">' + r.time + '</td>' +
+      '<td class="scenario">' + r.scenario + '</td>' +
+      '<td class="mono" title="' + r.txn + '">' + r.txn.slice(0, 8) + '</td>' +
+      '<td class="mono num">' + inr(r.amount) + '</td>' +
+      '<td><span class="badge ' + r.status + '">' + (r.status === "accepted" ? "✓" : "✗") + " " + r.status + '</span></td>' +
+      '<td class="reason" title="' + r.reason + '">' + r.reason + '</td>' +
+      '<td class="mono num">' + r.latency.toFixed(1) + ' ms</td>' +
+      '</tr>';
+  }).join("");
+}
+
+function renderKpis() {
+  var m = state.mandate;
+  $("k-cap").textContent = m ? inr(m.max_amount_paise) : "—";
+  $("k-cap-sub").textContent = m ? m.merchant_id + " · single-use" : "No active mandate";
+  $("k-spend").textContent = inr(state.approvedPaise);
+  var pct = m ? Math.min(100, Math.round(100 * state.approvedPaise / m.max_amount_paise)) : 0;
+  $("k-pct").textContent = pct + "%"; $("k-bar").style.transform = "scaleX(" + (pct / 100) + ")";
+  $("k-blocked").textContent = state.blocked;
+  $("k-blocked-amt").textContent = inr(state.blockedPaise);
+  var sorted = state.latencies.slice().sort(function(a, b) { return a - b; });
+  $("k-lat").textContent = sorted.length ? sorted[Math.floor(sorted.length / 2)].toFixed(1) + " ms" : "—";
+  $("k-count").textContent = state.latencies.length;
+}
+
+var FLOW_KEY = [["signature", /signature/], ["single", /already used|replay|expired/], ["merchant", /merchant/], ["price", /price mismatch/], ["cap", /exceeds/]];
+function highlightFlow(r) {
+  var steps = Array.from(document.querySelectorAll(".step"));
+  steps.forEach(function(s) { s.classList.remove("hit", "pass"); });
+  var hit = -1;
+  if (r.status !== "accepted") {
+    hit = steps.findIndex(function(s) {
+      var pair = FLOW_KEY.find(function(kv) { return kv[0] === s.dataset.k; });
+      return pair && pair[1].test(r.reason);
+    });
   }
-}
-
-function refreshAudit() {
-  renderAudit();
-}
-
-function clearAudit() {
-  if (confirm("Clear all audit entries?")) {
-    auditEntries = [];
-    stats = { approved: 0, blocked: 0, approvedPaise: 0, blockedPaise: 0, latencies: [] };
-    renderAudit();
-    updateKPIs();
-  }
-}
-
-function renderAudit() {
-  const tbody = document.getElementById("audit-body");
-  if (auditEntries.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">No transactions yet</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = auditEntries.map(e => `
-    <tr>
-      <td>${e.timestamp}</td>
-      <td class="monospace">${e.txn_id}</td>
-      <td>${e.agent_id}</td>
-      <td class="monospace">${inr(e.requested_paise)}</td>
-      <td><span class="decision-badge ${e.status === 'accepted' ? 'approved' : 'blocked'}">${e.status === 'accepted' ? '✓ Approved' : '✕ Blocked'}</span></td>
-      <td>${e.reason}</td>
-      <td class="monospace">${e.latency.toFixed(1)}</td>
-    </tr>
-  `).join("");
-}
-
-function updateKPIs() {
-  if (!mandate) return;
-  const spent = stats.approvedPaise;
-  const pct = Math.round((spent / mandate.max_amount_paise) * 100);
-  const avgLatency = stats.latencies.length > 0
-    ? (stats.latencies.reduce((a, b) => a + b) / stats.latencies.length).toFixed(1)
-    : 0;
-
-  document.getElementById("kpi-ceiling").textContent = inr(mandate.max_amount_paise);
-  document.getElementById("kpi-spend").textContent = inr(spent);
-  document.getElementById("kpi-spend-pct").textContent = pct;
-  document.getElementById("kpi-blocked").textContent = stats.blocked;
-  document.getElementById("kpi-latency").textContent = avgLatency;
-}
-
-function enableAttacks() {
-  ["btn-valid", "btn-over", "btn-tamper", "btn-replay"].forEach(id => {
-    document.getElementById(id).disabled = false;
+  steps.forEach(function(s, i) {
+    if (hit === -1 || i < hit) s.classList.add("pass");
+    if (i === hit) s.classList.add("hit");
   });
 }
 
-function showToast(title, body) {
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${body}</div>`;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
+function setActions(on) { Object.keys(ACTIONS).forEach(function(id) { $(id).disabled = !on; }); }
+function setBusy(btn, busy, text) { btn.disabled = busy; btn.textContent = text; }
+
+function toast(kind, title, body) {
+  document.querySelectorAll(".toast").forEach(function(t) { t.remove(); });
+  var el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = '<span class="badge ' + kind + '">' + (kind === "accepted" ? "✓" : "✗") + '</span><div><div class="tt"></div><div class="tb"></div></div>';
+  el.querySelector(".tt").textContent = title;
+  el.querySelector(".tb").textContent = body;
+  document.body.appendChild(el);
+  setTimeout(function() { el.remove(); }, 4500);
 }
 
-// Auto-refresh audit every 3 seconds
-setInterval(() => {
-  if (auditEntries.length > 0) renderAudit();
-}, 3000);
-</script>
+/* ---------- wiring ---------- */
+$("b-issue").addEventListener("click", issueMandate);
+$("b-sim").addEventListener("click", runSuite);
+$("b-clear").addEventListener("click", function() {
+  Object.assign(state, { rows: [], approvedPaise: 0, blockedPaise: 0, blocked: 0, latencies: [] });
+  renderRows(); renderKpis();
+  document.querySelectorAll(".step").forEach(function(s) { s.classList.remove("hit", "pass"); });
+});
+Object.keys(ACTIONS).forEach(function(id) { $(id).addEventListener("click", function() { fireAction(id); }); });
 
+(async function() {
+  try {
+    var items = await api("/catalog");
+    items.forEach(function(p) { state.catalog[p.id] = p; });
+  } catch (e) { toast("failed", "Catalog unavailable", "Agent actions need product ids from /api/v1/catalog."); }
+  renderRows(); renderKpis();
+})();
+</script>
 </body>
 </html>

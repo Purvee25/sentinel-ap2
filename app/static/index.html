@@ -237,9 +237,16 @@
   .none { padding: 26px 14px; text-align: center; color: var(--slate-2); font-size: 15px; }
   .hint { margin: 9px 0 0; font-size: 13px; line-height: 1.5; color: var(--slate-2); }
   .hint code { font-family: var(--mono); font-size: 12.5px; color: var(--slate); }
+  #error-msg {
+    display: none; position: fixed; top: 16px; right: 16px; background: var(--no-bg);
+    border: 1px solid var(--no-line); border-radius: 4px; padding: 10px 14px;
+    color: var(--no); font-size: 12.5px; z-index: 9999; max-width: 300px;
+  }
 </style>
 </head>
 <body>
+
+<div id="error-msg"></div>
 
 <!-- everything actionable lives on the rail -->
 <aside class="rail">
@@ -259,7 +266,7 @@
     <input id="ttl" type="number" value="3600" min="1">
     <label for="merchant">Scoped to merchant</label>
     <input id="merchant" type="text" value="merchant_xyz">
-    <button class="primary" onclick="issueMandate()">Sign and issue</button>
+    <button id="issueBtn" class="primary" onclick="issueMandate()">Sign and issue</button>
     <div id="receipt" class="issued none">None issued</div>
   </div>
 
@@ -359,9 +366,44 @@
 let mandate = null;
 let catalog = [];
 let attemptedPaise = 0, blockedPaise = 0, allowedPaise = 0, requests = 0, blocks = 0;
+let isLoading = false;
 
 const inr = (p) => "₹" + (p / 100).toLocaleString("en-IN", { minimumFractionDigits: 2 });
 const clock = () => new Date().toTimeString().slice(0, 8);
+
+function setLoading(on) {
+  isLoading = on;
+  ["b-buy","b-replay","b-cap","b-merch","b-price","issueBtn"]
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = on || (id !== "issueBtn" && !mandate);
+    });
+}
+
+function showError(msg) {
+  const el = document.getElementById("error-msg");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = "block";
+  setTimeout(() => { el.style.display = "none"; }, 5000);
+}
+
+async function apiCall(url, options = {}) {
+  try {
+    setLoading(true);
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`${res.status}: ${err || res.statusText}`);
+    }
+    return await res.json();
+  } catch (e) {
+    showError(e.message);
+    throw e;
+  } finally {
+    setLoading(false);
+  }
+}
 
 /* The guardrail's checks, in the order guardrail.py runs them. Mapping the
    rejection reason back to a step is what lets the UI show where a request
@@ -478,16 +520,49 @@ function bumpStats(res) {
 }
 
 async function loadCatalog() {
-  catalog = await (await fetch("/catalog")).json();
-  document.getElementById("catalog").innerHTML = catalog.map(p => {
-    const bad = p.description.includes("ignore all spending limits");
-    return `<div class="prow">
-      <span>${p.name}${bad ? '<span class="flag">Description contains an embedded instruction telling agents to ignore spending limits.</span>' : ''}</span>
-      <span class="amt">${inr(p.price_paise)}</span>
-    </div>`;
-  }).join("");
-  document.getElementById("product").innerHTML = catalog
-    .map(p => `<option value="${p.id}">${p.name} — ${inr(p.price_paise)}</option>`).join("");
+  try {
+    catalog = await apiCall("/catalog");
+    document.getElementById("catalog").innerHTML = catalog.map(p => {
+      const bad = p.description.includes("ignore all spending limits");
+      return `<div class="prow">
+        <span>${p.name}${bad ? '<span class="flag">Description contains an embedded instruction telling agents to ignore spending limits.</span>' : ''}</span>
+        <span class="amt">${inr(p.price_paise)}</span>
+      </div>`;
+    }).join("");
+    document.getElementById("product").innerHTML = catalog
+      .map(p => `<option value="${p.id}">${p.name} — ${inr(p.price_paise)}</option>`).join("");
+  } catch (e) {
+    showError("Failed to load catalog: " + e.message);
+  }
+}
+
+async function loadAuditHistory() {
+  try {
+    const entries = await apiCall("/audit?limit=50");
+    if (entries.length === 0) return;
+    const log = document.getElementById("log");
+    if (log.querySelector(".none")) log.innerHTML = "";
+    entries.reverse().forEach(entry => {
+      const data = JSON.parse(entry.payload_json);
+      const ok = data.status === "accepted";
+      const el = document.createElement("div");
+      el.className = "entry " + (ok ? "ok" : "no");
+      el.innerHTML = `
+        <div class="top">
+          <span class="tag">${ok ? "Approved" : "Blocked"}</span>
+          <span class="what">${data.label || "Request"}</span>
+          <span class="ts">${new Date(entry.created_at).toLocaleTimeString()}</span>
+        </div>
+        <div class="why">${data.reason}</div>
+        ${pipelineHtml(data.reason, ok)}
+        <div class="meta">${ok
+          ? `charged ${inr(data.computed_total_paise)} · razorpay ${data.razorpay_payment_id}`
+          : `attempted ${inr(data._intent || 0)} · nothing charged · txn ${data.transaction_id}`}</div>`;
+      log.appendChild(el);
+    });
+  } catch (e) {
+    // Silently fail on audit load — not blocking
+  }
 }
 
 function enable(on) {
@@ -496,34 +571,52 @@ function enable(on) {
 }
 
 async function issueMandate() {
-  mandate = await (await fetch("/mandates", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      merchant_id: document.getElementById("merchant").value,
-      max_amount_paise: Math.round(Number(document.getElementById("cap").value) * 100),
-      ttl_seconds: Number(document.getElementById("ttl").value),
-    }),
-  })).json();
+  const cap = Number(document.getElementById("cap").value);
+  const ttl = Number(document.getElementById("ttl").value);
+  const merchant = document.getElementById("merchant").value;
 
-  const r = document.getElementById("receipt");
-  r.className = "issued";
-  r.innerHTML =
-    `<div><span class="k">cap</span><span class="v">${inr(mandate.max_amount_paise)}</span></div>
-     <div><span class="k">merchant</span><span class="v">${mandate.merchant_id}</span></div>
-     <div><span class="k">expires</span><span class="v">${new Date(mandate.expires_at).toLocaleTimeString()}</span></div>
-     <div><span class="k">ed25519</span><span class="v">${mandate.signature_b64.slice(0, 18)}…</span></div>`;
-  document.getElementById("s-cap").textContent = inr(mandate.max_amount_paise);
-  enable(true);
+  if (!cap || cap <= 0) { showError("Cap must be > 0"); return; }
+  if (!ttl || ttl <= 0) { showError("TTL must be > 0"); return; }
+  if (!merchant.trim()) { showError("Merchant required"); return; }
+
+  try {
+    mandate = await apiCall("/mandates", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        merchant_id: merchant,
+        max_amount_paise: Math.round(cap * 100),
+        ttl_seconds: ttl,
+      }),
+    });
+
+    const r = document.getElementById("receipt");
+    r.className = "issued";
+    r.innerHTML =
+      `<div><span class="k">cap</span><span class="v">${inr(mandate.max_amount_paise)}</span></div>
+       <div><span class="k">merchant</span><span class="v">${mandate.merchant_id}</span></div>
+       <div><span class="k">expires</span><span class="v">${new Date(mandate.expires_at).toLocaleTimeString()}</span></div>
+       <div><span class="k">ed25519</span><span class="v">${mandate.signature_b64.slice(0, 18)}…</span></div>`;
+    document.getElementById("s-cap").textContent = inr(mandate.max_amount_paise);
+    enable(true);
+  } catch (e) {
+    showError("Failed to issue mandate: " + e.message);
+  }
 }
 
 async function purchase(payload, label, intentPaise) {
-  const res = await (await fetch("/purchase", {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
-  })).json();
-  res._intent = intentPaise;
-  bumpStats(res);
-  render(res, label);
-  return res;
+  try {
+    const res = await apiCall("/purchase", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+    });
+    res._intent = intentPaise;
+    res.label = label;
+    bumpStats(res);
+    render(res, label);
+    return res;
+  } catch (e) {
+    showError("Purchase failed: " + e.message);
+    return null;
+  }
 }
 
 function render(res, label) {
@@ -555,14 +648,19 @@ const priceOf = (id) => (catalog.find(p => p.id === id) || {}).price_paise || 0;
    against its own freshly-issued mandate, so each guardrail shows up
    independently rather than all reporting "already used". */
 async function freshMandate() {
-  return await (await fetch("/mandates", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      merchant_id: mandate.merchant_id,
-      max_amount_paise: mandate.max_amount_paise,
-      ttl_seconds: 3600,
-    }),
-  })).json();
+  try {
+    return await apiCall("/mandates", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        merchant_id: mandate.merchant_id,
+        max_amount_paise: mandate.max_amount_paise,
+        ttl_seconds: 3600,
+      }),
+    });
+  } catch (e) {
+    showError("Failed to issue mandate for attack: " + e.message);
+    return null;
+  }
 }
 
 function legitPurchase() {
@@ -577,6 +675,7 @@ function attackReplay() {
 
 async function attackOverCap() {
   const m = await freshMandate();
+  if (!m) return null;
   const top = catalog.reduce((a, b) => (a.price_paise > b.price_paise ? a : b));
   return purchase({ mandate_id: m.id, merchant_id: m.merchant_id,
                     product_id: top.id, qty: 50 }, `50 × ${top.name}`, top.price_paise * 50);
@@ -584,12 +683,14 @@ async function attackOverCap() {
 
 async function attackMerchant() {
   const m = await freshMandate();
+  if (!m) return null;
   return purchase({ mandate_id: m.id, merchant_id: "attacker_merchant",
                     product_id: target(), qty: 1 }, "Merchant substitution", priceOf(target()));
 }
 
 async function attackPrice() {
   const m = await freshMandate();
+  if (!m) return null;
   return purchase({ mandate_id: m.id, merchant_id: m.merchant_id,
                     product_id: target(), qty: 1,
                     client_claimed_price_paise: 1 }, "Cart price tampering", priceOf(target()));
@@ -606,9 +707,7 @@ const REASON_LABELS = {
 async function loadProof() {
   const el = document.getElementById("proof");
   try {
-    const r = await fetch("/fuzz-report");
-    if (!r.ok) throw new Error("no report");
-    const report = await r.json();
+    const report = await apiCall("/fuzz-report");
 
     document.getElementById("p-attempts").textContent = report.attempts.toLocaleString("en-IN");
     const v = report.cap_violations.length;
@@ -627,6 +726,7 @@ async function loadProof() {
 
 loadCatalog();
 loadProof();
+loadAuditHistory();
 initGate();
 </script>
 </body>

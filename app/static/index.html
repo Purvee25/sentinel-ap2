@@ -185,6 +185,30 @@
 
   @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, 1fr); } .flow { grid-template-columns: repeat(3, 1fr); } .step:nth-child(3)::after { content: none; } }
   @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+  /* ---------- hero ---------- */
+  .hero {
+    background: var(--navy); color: #fff;
+    padding: 28px 28px 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 32px;
+  }
+  .hero-copy { max-width: 640px; }
+  .hero-copy h2 { margin: 0 0 8px; font-size: 18px; font-weight: 600; letter-spacing: -.015em; color: #fff; }
+  .hero-copy p { margin: 0; font-size: 13px; color: rgba(255,255,255,.65); line-height: 1.6; }
+  .hero-copy p strong { color: rgba(255,255,255,.9); font-weight: 500; }
+  .hero-stats { display: flex; gap: 32px; flex-shrink: 0; align-items: center; }
+  .hero-stat { text-align: right; }
+  .hero-stat .val { font: 600 22px/1 var(--mono); color: #fff; }
+  .hero-stat .val.g { color: #4ade80; }
+  .hero-stat .val.r { color: #f87171; }
+  .hero-stat .lbl { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .hero-divider { width: 1px; height: 40px; background: rgba(255,255,255,.12); }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
+    background: var(--blue); color: #fff; border: none; border-radius: 6px;
+    padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background .15s;
+  }
+  .hero-cta:hover { background: var(--blue-dark); }
 </style>
 </head>
 <body>
@@ -196,6 +220,21 @@
   </div>
   <div class="env"><i></i> Razorpay test mode &middot; AP2-style mandates</div>
 </header>
+
+<div class="hero">
+  <div class="hero-copy">
+    <h2>An AI agent tried to spend ₹3,03,546. It spent ₹899.</h2>
+    <p>Sentinel sits between any autonomous agent and Razorpay. You issue a <strong>signed mandate</strong> — a spending cap, one merchant, a time window. Every purchase attempt is verified against it: signature, single-use nonce, merchant match, catalog price, cap arithmetic. Only then does Razorpay see the request. <strong>No LLM makes any money decision.</strong> Prompt injection, price tampering, replay attacks, and merchant swaps all die at a deterministic check — not a filter.</p>
+    <button class="hero-cta" id="b-hero-sim">&#9654;&nbsp; Run the attack demo</button>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="val r">₹3,02,647</div><div class="lbl">Blocked at guardrail</div></div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat"><div class="val g">₹899</div><div class="lbl">Actually charged</div></div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat"><div class="val">50,000</div><div class="lbl">Fuzz attempts · 0 violations</div></div>
+  </div>
+</div>
 
 <section class="kpis">
   <div class="kpi">
@@ -473,6 +512,7 @@ function toast(kind, title, body) {
 /* ---------- wiring ---------- */
 $("b-issue").addEventListener("click", issueMandate);
 $("b-sim").addEventListener("click", runSuite);
+$("b-hero-sim").addEventListener("click", function() { $("b-sim").click(); window.scrollTo({top: 0, behavior: "smooth"}); setTimeout(function(){ var el = document.querySelector(".ledger"); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); }, 200); });
 $("b-clear").addEventListener("click", function() {
   Object.assign(state, { rows: [], approvedPaise: 0, blockedPaise: 0, blocked: 0, latencies: [] });
   renderRows(); renderKpis();

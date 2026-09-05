@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 class MandateCreateRequest(BaseModel):
     merchant_id: str
     max_amount_paise: int = Field(gt=0)
-    ttl_seconds: int = Field(gt=0, le=86400, description="Mandate validity window, max 24h")
+    ttl_seconds: int = Field(gt=0, le=604800, description="Mandate validity window, max 7 days")
 
 
 class MandateResponse(BaseModel):

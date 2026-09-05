@@ -75,14 +75,59 @@ The reason prompt injection doesn't work here isn't that I filter for it. It's t
 
 **The LLM-free zone:** mandate signature verification, catalog price lookup, cap arithmetic, and Razorpay order creation are all deterministic code. No LLM touches any money decision. The only LLM in the project is `app/agent.py` — the buyer, not the guardrail. This means the security property holds regardless of model behavior.
 
+```mermaid
+graph LR
+    A["🤖 AI Agent<br/><i>app/agent.py</i>"] -->|"mandate_id · merchant_id<br/>product_id · qty"| B["FastAPI<br/><i>app/main.py</i>"]
+    B --> C["Guardrail<br/><i>app/guardrail.py</i>"]
+
+    C --> D["Ed25519 verify<br/><i>mandate.py</i>"]
+    C --> E["Single-use nonce<br/><i>SQLite</i>"]
+    C --> F["Merchant match<br/><i>SQLite</i>"]
+    C --> G["Catalog price<br/><i>catalog.py</i>"]
+    C --> H["Cap arithmetic<br/><i>guardrail.py</i>"]
+
+    D -->|"❌ reject"| L["Audit log"]
+    E -->|"❌ reject"| L
+    F -->|"❌ reject"| L
+    G -->|"❌ reject"| L
+    H -->|"❌ reject"| L
+
+    H -->|"✅ all pass"| I["Razorpay API<br/><i>razorpay_client.py</i>"]
+    I --> L
+
+    style A fill:#1e3a5f,color:#fff,stroke:none
+    style C fill:#0C83FE,color:#fff,stroke:none
+    style I fill:#0E8A5A,color:#fff,stroke:none
+    style L fill:#4A5970,color:#fff,stroke:none
 ```
-agent  ──{mandate_id, merchant_id, product_id, qty}──▶  FastAPI
-                                                          │
-                                        guardrail.py ◀────┤
-                                          ├─ mandate.py   (Ed25519 verify)
-                                          ├─ catalog.py   (price truth)
-                                          ├─ SQLite       (mandates, txns, audit)
-                                          └─ Razorpay     (only after accept)
+
+**Decision flow — what happens inside the guardrail on every purchase attempt:**
+
+```mermaid
+flowchart TD
+    A["Purchase request\nmandate_id · merchant_id · product_id · qty"] --> B{"Ed25519\nsignature valid?"}
+    B -- No --> R1["❌ rejected: invalid signature"]
+    B -- Yes --> C{"Mandate\nactive & not expired?"}
+    C -- No --> R2["❌ rejected: expired / not found"]
+    C -- Yes --> D{"Nonce\nalready used?"}
+    D -- Yes --> R3["❌ rejected: replay attack"]
+    D -- No --> E{"Merchant\nmatches mandate?"}
+    E -- No --> R4["❌ rejected: merchant mismatch"]
+    E -- Yes --> F["Catalog price lookup\n(agent-claimed price ignored)"]
+    F --> G{"Total ≤\nmandate cap?"}
+    G -- No --> R5["❌ rejected: exceeds cap"]
+    G -- Yes --> H["Mark nonce consumed\ncommit to DB"]
+    H --> I["Call Razorpay\ncreate order"]
+    I --> J["✅ accepted\naudit entry written"]
+
+    style R1 fill:#FBE4E3,color:#C4302B,stroke:#C4302B
+    style R2 fill:#FBE4E3,color:#C4302B,stroke:#C4302B
+    style R3 fill:#FBE4E3,color:#C4302B,stroke:#C4302B
+    style R4 fill:#FBE4E3,color:#C4302B,stroke:#C4302B
+    style R5 fill:#FBE4E3,color:#C4302B,stroke:#C4302B
+    style J fill:#DDF5EA,color:#0E8A5A,stroke:#0E8A5A
+    style H fill:#E8F2FF,color:#0C83FE,stroke:#0C83FE
+    style I fill:#E8F2FF,color:#0C83FE,stroke:#0C83FE
 ```
 
 ## What's actually new here

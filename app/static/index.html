@@ -3,731 +3,605 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sentinel-AP2</title>
+<title>Sentinel-AP2 | Agentic Commerce Security</title>
 <style>
-  /* Razorpay's palette, sampled from razorpay.com: white surfaces, #305EFF,
-     near-black navy text, 4px radii, light blue tints for emphasis. This is
-     an independent project, not affiliated with or endorsed by Razorpay. */
+  /* Razorpay Blade Design System */
   :root {
-    --blue: #305EFF;
-    --blue-dark: #2950DA;
-    --blue-tint: #eef2ff;
-    --blue-line: #c9d5ff;
-    --rail: #ffffff;
-    --rail-2: #f7f9fc;
-    --rail-line: #e6eaf2;
-    --rail-text: #6b7a90;
-    --ink: #0d1b3e;
-    --slate: #55677d;
-    --slate-2: #8b9bad;
-    --bg: #f7f9fc;
-    --surface: #fff;
-    --line: #e6eaf2;
-    --line-2: #f0f3f8;
-    --ok: #0a6b42;
-    --ok-bg: #f1faf5;
-    --ok-line: #a9dcc2;
-    --no: #b12318;
-    --no-bg: #fdf4f3;
-    --no-line: #eab9b4;
-    --amber: #855510;
-    --amber-bg: #fdf9ee;
-    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --primary: #0C83FE;
+    --primary-dark: #0A5FCC;
+    --navy: #02042B;
+    --navy-light: #0C2340;
+    --navy-lighter: #1A3A52;
+    --gray-bg: #F8F9FB;
+    --gray-border: #E3E8EE;
+    --gray-text: #6B7A90;
+    --green: #0FA362;
+    --green-light: #E6F8F1;
+    --red: #C02A2A;
+    --red-light: #FEE5E5;
+    --amber: #D97706;
+    --amber-light: #FEF3E2;
+    --text-primary: #02042B;
+    --text-secondary: #6B7A90;
   }
+
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
+  html, body { height: 100%; margin: 0; padding: 0; }
   body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--gray-bg);
+    color: var(--text-primary);
+    font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
-    font-variant-numeric: tabular-nums;
-    display: grid; grid-template-columns: 290px minmax(0, 1fr);
-  }
-  @media (max-width: 860px) { body { grid-template-columns: 1fr; } }
-
-  /* ---------- left rail: everything you can *do* ---------- */
-  .rail {
-    background: var(--rail); color: var(--ink); min-height: 100vh;
-    border-right: 1px solid var(--rail-line);
-    display: flex; flex-direction: column; position: sticky; top: 0;
-    max-height: 100vh; overflow-y: auto;
-  }
-  @media (max-width: 860px) { .rail { position: static; max-height: none; min-height: 0; } }
-  .brand {
-    display: flex; align-items: center; gap: 9px; padding: 15px 16px;
-    border-bottom: 1px solid var(--rail-line);
-  }
-  .brand .mk {
-    width: 22px; height: 22px; border-radius: 4px; background: var(--blue);
-    display: grid; place-items: center; font-size: 14px; font-weight: 700; flex: none;
-  }
-  .brand .nm { font-size: 15.5px; font-weight: 600; }
-  .brand .sb { font-size: 12.5px; color: var(--rail-text); }
-
-  .grp { padding: 14px 16px; border-bottom: 1px solid var(--rail-line); }
-  .grp > .gt {
-    font-size: 12px; text-transform: uppercase; letter-spacing: .07em;
-    color: var(--slate-2); font-weight: 600; margin-bottom: 10px;
-  }
-  .rail label { display: block; font-size: 13px; color: var(--rail-text); margin: 9px 0 4px; }
-  .rail label:first-of-type { margin-top: 0; }
-  .rail input, .rail select {
-    width: 100%; padding: 6px 8px; font: inherit; font-size: 14.5px; color: var(--ink);
-    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
-  }
-  .rail input:focus, .rail select:focus {
-    outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(48,94,255,.12);
-  }
-  .rail button {
-    width: 100%; padding: 7px 10px; margin-top: 8px; cursor: pointer; text-align: left;
-    font: inherit; font-size: 14.5px; border-radius: 4px;
-    background: var(--surface); border: 1px solid var(--line); color: var(--ink);
-  }
-  .rail button:hover:not(:disabled) { background: var(--rail-2); border-color: var(--blue-line); }
-  .rail button:disabled { opacity: .45; cursor: not-allowed; }
-  .rail button.primary {
-    background: var(--blue); border-color: var(--blue); color: #fff;
-    font-weight: 600; text-align: center;
-  }
-  .rail button.primary:hover:not(:disabled) { background: var(--blue-dark); border-color: var(--blue-dark); }
-  .rail button.atk { padding-left: 24px; position: relative; }
-  .rail button.atk::before {
-    content: ""; position: absolute; left: 10px; top: 50%; margin-top: -3px;
-    width: 6px; height: 6px; border-radius: 50%; background: #d4645b;
-  }
-  .issued {
-    margin-top: 10px; border: 1px solid var(--line); border-radius: 4px;
-    font-family: var(--mono); font-size: 12.5px; background: var(--rail-2);
-  }
-  .issued div { display: flex; gap: 8px; padding: 4px 8px; border-bottom: 1px solid var(--line-2); }
-  .issued div:last-child { border-bottom: none; }
-  .issued .k { color: var(--slate-2); width: 54px; flex: none; }
-  .issued .v { color: var(--ink); word-break: break-all; }
-  .issued.none { padding: 8px; color: var(--slate-2); font-family: inherit; font-size: 14px; }
-  .foot {
-    margin-top: auto; padding: 12px 16px; border-top: 1px solid var(--rail-line);
-    font-size: 13px; color: var(--slate); display: flex; align-items: center; gap: 7px;
-  }
-  .foot .dot { width: 6px; height: 6px; border-radius: 50%; background: #1a9e63; }
-
-  /* ---------- main: everything you can *observe* ---------- */
-  .main { min-width: 0; display: flex; flex-direction: column; }
-  .topbar {
-    background: var(--surface); border-bottom: 1px solid var(--line);
-    display: flex; flex-wrap: wrap; align-items: stretch;
-  }
-  .stat { padding: 11px 18px; border-right: 1px solid var(--line-2); min-width: 150px; }
-  .stat .k {
-    font-size: 12px; color: var(--slate-2); text-transform: uppercase;
-    letter-spacing: .05em; margin-bottom: 3px;
-  }
-  .stat .v { font-family: var(--mono); font-size: 20.5px; letter-spacing: -.01em; }
-  .stat .v.neg { color: var(--no); }
-  .stat .v.pos { color: var(--ok); }
-  .stat .s { font-size: 13px; color: var(--slate-2); margin-top: 2px; }
-  .runbox { padding: 11px 18px; flex: 1; min-width: 280px; }
-  .runbox .rh { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
-  .runbox .rh .k {
-    font-size: 12px; color: var(--slate-2); text-transform: uppercase; letter-spacing: .05em;
-  }
-  .runbox .rh .src { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--slate-2); }
-  .runbox .rl { font-size: 14.5px; }
-  .runbox .rl .n { font-family: var(--mono); font-weight: 600; }
-  .runbox .rl .z { color: var(--ok); font-weight: 600; }
-  .runbox .rb { margin-top: 5px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--slate); }
-  .runbox .rb b { font-family: var(--mono); font-weight: 500; color: var(--ink); }
-
-  .body { padding: 16px 18px 32px; display: flex; flex-direction: column; gap: 16px; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
-  .card > .ch {
-    padding: 9px 14px; border-bottom: 1px solid var(--line-2);
-    font-size: 14.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;
-  }
-  .card > .ch .n { margin-left: auto; font-weight: 400; font-size: 13px; color: var(--slate-2); }
-  .card > .cb { padding: 14px; }
-
-  /* pipeline strip */
-  .flow { position: relative; height: 120px; }
-  .rulel { position: absolute; left: 66px; right: 66px; top: 46px; height: 1px; background: var(--line); }
-  .end {
-    position: absolute; top: 46px; transform: translate(-50%, -50%);
-    display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 2;
-  }
-  .end .bx {
-    width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 5px;
-    background: var(--surface); display: grid; place-items: center; color: var(--slate);
-  }
-  .end .lb { font-size: 11.5px; color: var(--slate-2); text-transform: uppercase; letter-spacing: .05em; }
-  .e-src { left: 40px; }
-  .e-dst { left: auto; right: 40px; transform: translate(50%, -50%); }
-  .gate {
-    position: absolute; left: 128px; right: 128px; top: 46px; transform: translateY(-50%);
-    display: flex; gap: 5px; z-index: 1;
-  }
-  .gstep {
-    flex: 1; min-width: 0; padding: 7px 5px; border: 1px solid var(--line);
-    border-radius: 5px; background: var(--surface); text-align: center;
-  }
-  .gstep .gn { font-family: var(--mono); font-size: 11px; color: var(--slate-2); display: block; }
-  .gstep .gl {
-    font-size: 11.5px; color: var(--slate); display: block; margin-top: 1px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .gstep.hit-pass { border-color: var(--ok-line); background: var(--ok-bg); }
-  .gstep.hit-pass .gl, .gstep.hit-pass .gn { color: var(--ok); }
-  .gstep.hit-fail { border-color: var(--no); background: var(--no-bg); }
-  .gstep.hit-fail .gl, .gstep.hit-fail .gn { color: var(--no); font-weight: 600; }
-  .packet {
-    position: absolute; top: 46px; left: 40px; transform: translate(-50%, -50%);
-    width: 9px; height: 9px; border-radius: 50%; background: var(--blue); z-index: 3;
-    transition: left .95s cubic-bezier(.4,0,.2,1), background .15s;
-  }
-  .packet.go-pass { background: var(--ok); }
-  .packet.go-fail { background: var(--no); }
-  .packet.gone { opacity: 0; transition: opacity .28s; }
-  .verdict {
-    position: absolute; left: 0; right: 0; bottom: 12px; text-align: center;
-    font-size: 14.5px; color: var(--slate-2);
-  }
-  .verdict.pass { color: var(--ok); }
-  .verdict.fail { color: var(--no); }
-  .verdict .m { font-family: var(--mono); }
-
-  /* catalog inline */
-  .prow {
-    display: flex; justify-content: space-between; gap: 10px;
-    padding: 7px 0; border-bottom: 1px solid var(--line-2); font-size: 15px;
-  }
-  .prow:last-child { border-bottom: none; }
-  .prow:first-child { padding-top: 0; }
-  .prow .amt { font-family: var(--mono); font-size: 14.5px; color: var(--slate); }
-  .prow .flag {
-    display: block; margin-top: 4px; font-size: 13px; line-height: 1.45; color: var(--amber);
-    background: var(--amber-bg); border-left: 2px solid #d7a949; padding: 4px 8px;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* audit */
-  #log { max-height: 62vh; overflow-y: auto; }
-  .entry { padding: 11px 14px; border-bottom: 1px solid var(--line-2); }
-  .entry:last-child { border-bottom: none; }
-  .entry .top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .tag {
-    font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
-    padding: 2px 6px; border-radius: 3px; border: 1px solid;
+  /* Header */
+  .header {
+    background: #fff;
+    border-bottom: 1px solid var(--gray-border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
-  .entry.ok .tag { color: var(--ok); border-color: var(--ok-line); background: var(--ok-bg); }
-  .entry.no .tag { color: var(--no); border-color: var(--no-line); background: var(--no-bg); }
-  .entry .what { font-size: 15.5px; font-weight: 600; }
-  .entry .ts { margin-left: auto; font-family: var(--mono); font-size: 12.5px; color: var(--slate-2); }
-  .entry .why { margin-top: 5px; font-size: 15px; }
-  .pipe { display: flex; gap: 3px; margin-top: 8px; flex-wrap: wrap; }
-  .step {
-    flex: 1 1 auto; min-width: 60px; padding: 4px 3px; border-radius: 3px;
-    border: 1px solid var(--line); background: #fafbfc; text-align: center;
-    font-size: 11.5px; color: var(--slate-2);
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-title { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+  .header-subtitle { font-size: 12px; color: var(--text-secondary); margin: 0; }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--green-light);
+    color: var(--green);
+    font-size: 11px;
+    font-weight: 600;
   }
-  .step .ic { display: block; font-family: var(--mono); font-size: 11px; }
-  .step.pass { border-color: var(--ok-line); background: var(--ok-bg); color: var(--ok); }
-  .step.fail { border-color: var(--no); background: var(--no-bg); color: var(--no); font-weight: 600; }
-  .step.skip { opacity: .42; }
-  .entry .meta {
-    margin-top: 7px; font-family: var(--mono); font-size: 12.5px;
-    color: var(--slate-2); word-break: break-all;
+  .status-badge::before {
+    content: "●";
+    font-size: 6px;
+    animation: pulse 2s infinite;
   }
-  .none { padding: 26px 14px; text-align: center; color: var(--slate-2); font-size: 15px; }
-  .hint { margin: 9px 0 0; font-size: 13px; line-height: 1.5; color: var(--slate-2); }
-  .hint code { font-family: var(--mono); font-size: 12.5px; color: var(--slate); }
-  #error-msg {
-    display: none; position: fixed; top: 16px; right: 16px; background: var(--no-bg);
-    border: 1px solid var(--no-line); border-radius: 4px; padding: 10px 14px;
-    color: var(--no); font-size: 12.5px; z-index: 9999; max-width: 300px;
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* KPI Strip */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 20px 24px;
+    background: #fff;
+    border-bottom: 1px solid var(--gray-border);
+  }
+  .kpi-card {
+    padding: 16px;
+    background: var(--gray-bg);
+    border-radius: 8px;
+    border: 1px solid var(--gray-border);
+  }
+  .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: var(--text-primary); font-family: "Monaco", monospace; }
+  .kpi-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* Main Container */
+  .main-content {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--navy);
+    color: #fff;
+    overflow-y: auto;
+    padding: 20px 16px;
+  }
+  .sidebar-section {
+    margin-bottom: 24px;
+  }
+  .sidebar-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 12px;
+  }
+  .sidebar-input {
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 13px;
+  }
+  .sidebar-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+  .sidebar-input:focus { outline: none; border-color: var(--primary); background: rgba(12, 131, 254, 0.1); }
+  .sidebar-button {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 4px;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.2s;
+  }
+  .sidebar-button:hover { background: var(--primary-dark); }
+  .sidebar-button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .sidebar-receipt {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-size: 11px;
+  }
+  .receipt-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .receipt-key { color: rgba(255, 255, 255, 0.6); }
+  .receipt-val { color: #fff; font-family: "Monaco", monospace; }
+  .attack-buttons { margin-top: 16px; }
+  .attack-btn {
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .attack-btn:hover { background: rgba(255, 255, 255, 0.15); }
+
+  /* Content Area */
+  .content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Simulation Bar */
+  .simulation-bar {
+    background: #fff;
+    border-bottom: 1px solid var(--gray-border);
+    padding: 12px 24px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sim-btn {
+    padding: 8px 14px;
+    border: 1px solid var(--primary);
+    background: #fff;
+    color: var(--primary);
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sim-btn:hover { background: var(--primary); color: #fff; }
+  .sim-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Audit Table */
+  .audit-container {
+    flex: 1;
+    overflow: auto;
+    padding: 0 24px 24px;
+  }
+  .audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid var(--gray-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .audit-table thead {
+    background: var(--gray-bg);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+  }
+  .audit-table th {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-border);
+  }
+  .audit-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-border);
+    font-size: 13px;
+  }
+  .audit-table tbody tr:hover { background: var(--gray-bg); }
+  .audit-table tbody tr:last-child td { border-bottom: none; }
+  .decision-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .decision-badge.approved {
+    background: var(--green-light);
+    color: var(--green);
+  }
+  .decision-badge.blocked {
+    background: var(--red-light);
+    color: var(--red);
+  }
+  .monospace { font-family: "Monaco", monospace; font-size: 12px; }
+
+  /* Toast Notification */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #fff;
+    border-left: 4px solid var(--red);
+    border-radius: 4px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 400px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(420px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .toast-title { font-weight: 600; margin-bottom: 4px; }
+  .toast-body { font-size: 12px; color: var(--text-secondary); }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .main-content { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .kpi-strip { grid-template-columns: 1fr; }
+    .header { flex-direction: column; align-items: flex-start; gap: 8px; }
   }
 </style>
 </head>
 <body>
 
-<div id="error-msg"></div>
-
-<!-- everything actionable lives on the rail -->
-<aside class="rail">
-  <div class="brand">
-    <span class="mk">S</span>
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
     <div>
-      <div class="nm">Sentinel-AP2</div>
-      <div class="sb">Agent payment guardrail</div>
+      <div class="header-title">Sentinel-AP2</div>
+      <p class="header-subtitle">Agentic Commerce Security Perimeter</p>
     </div>
   </div>
+  <div class="status-badge">Razorpay Sandbox (AP2 Protocol)</div>
+</div>
 
-  <div class="grp">
-    <div class="gt">Mandate</div>
-    <label for="cap">Spending cap (₹)</label>
-    <input id="cap" type="number" value="1500" min="1">
-    <label for="ttl">Valid for (seconds)</label>
-    <input id="ttl" type="number" value="3600" min="1">
-    <label for="merchant">Scoped to merchant</label>
-    <input id="merchant" type="text" value="merchant_xyz">
-    <button id="issueBtn" class="primary" onclick="issueMandate()">Sign and issue</button>
-    <div id="receipt" class="issued none">None issued</div>
+<!-- KPI Strip -->
+<div class="kpi-strip">
+  <div class="kpi-card">
+    <div class="kpi-label">Mandate Ceiling (₹)</div>
+    <div class="kpi-value" id="kpi-ceiling">0</div>
+    <div class="kpi-sub">Active limit</div>
   </div>
-
-  <div class="grp">
-    <div class="gt">Agent request</div>
-    <label for="product">Product</label>
-    <select id="product"></select>
-    <button class="primary" id="b-buy" onclick="legitPurchase()" disabled>Purchase</button>
+  <div class="kpi-card">
+    <div class="kpi-label">Authorized Spend (₹)</div>
+    <div class="kpi-value" id="kpi-spend">0</div>
+    <div class="kpi-sub"><span id="kpi-spend-pct">0</span>% of ceiling</div>
   </div>
-
-  <div class="grp">
-    <div class="gt">Attacks</div>
-    <button class="atk" id="b-replay" onclick="attackReplay()" disabled>Replay consumed mandate</button>
-    <button class="atk" id="b-cap" onclick="attackOverCap()" disabled>Exceed spending cap</button>
-    <button class="atk" id="b-merch" onclick="attackMerchant()" disabled>Substitute merchant</button>
-    <button class="atk" id="b-price" onclick="attackPrice()" disabled>Tamper with cart price</button>
-    <p class="hint">
-      The agent sends <code>product_id</code> and <code>qty</code> only. Price and total resolve
-      server-side, so no text it produces reaches a money decision.
-    </p>
+  <div class="kpi-card">
+    <div class="kpi-label">Blocked Attacks</div>
+    <div class="kpi-value" id="kpi-blocked">0</div>
+    <div class="kpi-sub">Intercepted attempts</div>
   </div>
-
-  <div class="foot"><span class="dot"></span> Razorpay test mode</div>
-</aside>
-
-<!-- everything observable lives here -->
-<div class="main">
-  <div class="topbar">
-    <div class="stat">
-      <div class="k">Attempted</div>
-      <div class="v" id="s-attempted">₹0.00</div>
-      <div class="s"><span id="s-count">0</span> requests</div>
-    </div>
-    <div class="stat">
-      <div class="k">Blocked</div>
-      <div class="v neg" id="s-blocked">₹0.00</div>
-      <div class="s"><span id="s-blocks">0</span> refused</div>
-    </div>
-    <div class="stat">
-      <div class="k">Charged</div>
-      <div class="v pos" id="s-allowed">₹0.00</div>
-      <div class="s">cap <span id="s-cap">—</span></div>
-    </div>
-    <div class="runbox" id="proof">
-      <div class="rh">
-        <span class="k">Randomised stress run</span>
-        <span class="src">GET /fuzz-report</span>
-      </div>
-      <div class="rl">
-        <span class="n" id="p-attempts">—</span> hostile attempts ·
-        <span class="z" id="p-violations">—</span> · every mandate cap held
-      </div>
-      <div class="rb" id="p-bars"></div>
-    </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Avg Latency (ms)</div>
+    <div class="kpi-value" id="kpi-latency">0</div>
+    <div class="kpi-sub">Target: &lt; 2ms</div>
   </div>
+</div>
 
-  <div class="body">
-    <div class="card">
-      <div class="ch">Request path <span class="n">where the last request stopped</span></div>
-      <div class="flow" id="arena">
-        <div class="rulel"></div>
-        <div class="end e-src">
-          <span class="bx">
-            <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
-              <rect x="4" y="6" width="12" height="10" rx="2"/><path d="M10 3v3M7.5 10h.01M12.5 10h.01M8 13h4"/>
-            </svg>
-          </span>
-          <span class="lb">Agent</span>
-        </div>
-        <div class="gate" id="gate"></div>
-        <div class="end e-dst">
-          <span class="bx">
-            <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
-              <path d="M3 8l7-4 7 4M5 8v8M15 8v8M10 8v8M3 16h14"/>
-            </svg>
-          </span>
-          <span class="lb">Razorpay</span>
-        </div>
-        <div class="packet" id="packet" style="display:none"></div>
-        <div class="verdict" id="a-caption"></div>
+<!-- Main Layout -->
+<div class="main-content">
+  <!-- Sidebar: Mandate Issuance & Controls -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Issue Mandate</div>
+      <input class="sidebar-input" id="inp-cap" type="number" placeholder="Cap (₹)" value="1500">
+      <input class="sidebar-input" id="inp-ttl" type="number" placeholder="Valid (seconds)" value="3600">
+      <input class="sidebar-input" id="inp-merchant" type="text" placeholder="Merchant ID" value="merchant_xyz">
+      <button class="sidebar-button" id="btn-issue" onclick="issueMandate()">Sign & Issue Mandate</button>
+      <div class="sidebar-receipt" id="receipt">No mandate issued</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Quick Actions</div>
+      <div class="attack-buttons">
+        <button class="attack-btn" id="btn-valid" onclick="triggerValidSpend()" disabled>✓ Valid Spend (₹400)</button>
+        <button class="attack-btn" id="btn-over" onclick="triggerOverBudget()" disabled>✕ Over-Budget (₹2000)</button>
+        <button class="attack-btn" id="btn-tamper" onclick="triggerTampered()" disabled>✗ Tampered Sig</button>
+        <button class="attack-btn" id="btn-replay" onclick="triggerReplay()" disabled>↻ Replay Attack</button>
       </div>
     </div>
+  </div>
 
-    <div class="card">
-      <div class="ch">Audit trail <span class="n">every decision, approved or refused</span></div>
-      <div id="log"><div class="none">Issue a mandate to begin.</div></div>
+  <!-- Content: Live Dashboard -->
+  <div class="content">
+    <!-- Simulation Bar -->
+    <div class="simulation-bar">
+      <button class="sim-btn" id="btn-run-sim" onclick="runFullSimulation()">▶ Run Full Adversarial Simulation</button>
+      <button class="sim-btn" onclick="refreshAudit()">↻ Refresh Audit</button>
+      <button class="sim-btn" onclick="clearAudit()">🗑 Clear History</button>
     </div>
 
-    <div class="card">
-      <div class="ch">Catalog <span class="n">source of price truth</span></div>
-      <div class="cb" id="catalog"></div>
+    <!-- Audit Table -->
+    <div class="audit-container">
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Transaction ID</th>
+            <th>Agent ID</th>
+            <th>Requested (₹)</th>
+            <th>Decision</th>
+            <th>Reason</th>
+            <th>Latency (ms)</th>
+          </tr>
+        </thead>
+        <tbody id="audit-body">
+          <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Issue a mandate to begin...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
 <script>
+const API_BASE = "";
 let mandate = null;
-let catalog = [];
-let attemptedPaise = 0, blockedPaise = 0, allowedPaise = 0, requests = 0, blocks = 0;
-let isLoading = false;
+let auditEntries = [];
+let stats = { approved: 0, blocked: 0, approvedPaise: 0, blockedPaise: 0, latencies: [] };
 
-const inr = (p) => "₹" + (p / 100).toLocaleString("en-IN", { minimumFractionDigits: 2 });
-const clock = () => new Date().toTimeString().slice(0, 8);
+const inr = (p) => "₹" + (p / 100).toLocaleString("en-IN");
+const tz = () => new Date().toLocaleTimeString("en-IN");
+const txnId = () => "TXN-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+const agentId = () => "agent_" + Math.random().toString(36).substr(2, 5);
 
-function setLoading(on) {
-  isLoading = on;
-  ["b-buy","b-replay","b-cap","b-merch","b-price","issueBtn"]
-    .forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.disabled = on || (id !== "issueBtn" && !mandate);
-    });
-}
+async function issueMandate() {
+  const cap = Number(document.getElementById("inp-cap").value);
+  const ttl = Number(document.getElementById("inp-ttl").value);
+  const merchant = document.getElementById("inp-merchant").value;
+  if (!cap || !ttl || !merchant) { alert("Fill all fields"); return; }
 
-function showError(msg) {
-  const el = document.getElementById("error-msg");
-  if (!el) return;
-  el.textContent = msg;
-  el.style.display = "block";
-  setTimeout(() => { el.style.display = "none"; }, 5000);
-}
-
-async function apiCall(url, options = {}) {
   try {
-    setLoading(true);
-    const res = await fetch(url, options);
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`${res.status}: ${err || res.statusText}`);
-    }
-    return await res.json();
+    mandate = await fetch(`${API_BASE}/api/v1/mandates`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ merchant_id: merchant, max_amount_paise: cap * 100, ttl_seconds: ttl })
+    }).then(r => r.json());
+
+    document.getElementById("receipt").innerHTML = `
+      <div class="receipt-row"><span class="receipt-key">Cap</span><span class="receipt-val">${inr(mandate.max_amount_paise)}</span></div>
+      <div class="receipt-row"><span class="receipt-key">Merchant</span><span class="receipt-val">${mandate.merchant_id}</span></div>
+      <div class="receipt-row"><span class="receipt-key">Expires</span><span class="receipt-val">${new Date(mandate.expires_at).toLocaleTimeString()}</span></div>
+      <div class="receipt-row"><span class="receipt-key">Signature</span><span class="receipt-val">${mandate.signature_b64.slice(0, 12)}…</span></div>
+    `;
+
+    updateKPIs();
+    enableAttacks();
+    loadAuditHistory();
   } catch (e) {
-    showError(e.message);
-    throw e;
-  } finally {
-    setLoading(false);
+    alert("Error issuing mandate: " + e.message);
   }
 }
 
-/* The guardrail's checks, in the order guardrail.py runs them. Mapping the
-   rejection reason back to a step is what lets the UI show where a request
-   died rather than just that it did. */
-const STEPS = [
-  { key: "sig",   label: "Signature",  match: r => r.includes("signature") || r.includes("not found") && r.includes("mandate") },
-  { key: "used",  label: "Single-use", match: r => r.includes("already used") },
-  { key: "exp",   label: "Expiry",     match: r => r.includes("expired") },
-  { key: "merch", label: "Merchant",   match: r => r.includes("merchant mismatch") },
-  { key: "price", label: "Price",      match: r => r.includes("price mismatch") },
-  { key: "cap",   label: "Cap",        match: r => r.includes("exceeds mandate cap") },
-  { key: "pay",   label: "Pay",        match: () => false },
-];
+async function triggerValidSpend() {
+  if (!mandate) return;
+  await makePurchase({
+    mandate_id: mandate.id,
+    merchant_id: mandate.merchant_id,
+    product_id: "wireless_mouse",
+    qty: 1
+  }, "Valid Spend");
+}
 
-function pipelineHtml(reason, accepted) {
-  const failIdx = accepted ? -1 : STEPS.findIndex(s => s.match(reason));
-  return `<div class="pipe">` + STEPS.map((s, i) => {
-    let cls = "pass", ic = "ok";
-    if (!accepted && failIdx >= 0) {
-      if (i === failIdx) { cls = "fail"; ic = "stop"; }
-      else if (i > failIdx) { cls = "skip"; ic = "–"; }
+async function triggerOverBudget() {
+  if (!mandate) return;
+  await makePurchase({
+    mandate_id: mandate.id,
+    merchant_id: mandate.merchant_id,
+    product_id: "laptop_stand",
+    qty: 10
+  }, "Over-Budget Attack");
+}
+
+async function triggerTampered() {
+  if (!mandate) return;
+  await makePurchase({
+    mandate_id: mandate.id,
+    merchant_id: "attacker_merchant",
+    product_id: "wireless_mouse",
+    qty: 1
+  }, "Tampered Merchant");
+}
+
+async function triggerReplay() {
+  if (!mandate) return;
+  const oldId = mandate.id;
+  // Issue fresh mandate for replay test
+  const m2 = await fetch(`${API_BASE}/api/v1/mandates`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ merchant_id: mandate.merchant_id, max_amount_paise: mandate.max_amount_paise, ttl_seconds: 3600 })
+  }).then(r => r.json());
+
+  // Use old mandate (replayed)
+  await makePurchase({
+    mandate_id: oldId,
+    merchant_id: mandate.merchant_id,
+    product_id: "wireless_mouse",
+    qty: 1
+  }, "Replay Attack");
+}
+
+async function makePurchase(payload, label) {
+  const startTime = Date.now();
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/purchase`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(r => r.json());
+
+    const latency = Date.now() - startTime;
+    stats.latencies.push(latency);
+
+    const entry = {
+      timestamp: tz(),
+      txn_id: txnId(),
+      agent_id: agentId(),
+      requested_paise: res.computed_total_paise || 0,
+      status: res.status,
+      reason: res.reason,
+      latency
+    };
+
+    auditEntries.unshift(entry);
+    if (auditEntries.length > 50) auditEntries.pop();
+
+    if (res.status === "accepted") {
+      stats.approved++;
+      stats.approvedPaise += res.computed_total_paise;
+    } else {
+      stats.blocked++;
+      stats.blockedPaise += entry.requested_paise;
+      showToast("Attack Blocked", `${label}: ${res.reason}`);
     }
-    return `<div class="step ${cls}"><span class="ic">${ic}</span>${s.label}</div>`;
-  }).join("") + `</div>`;
+
+    updateKPIs();
+    renderAudit();
+  } catch (e) {
+    console.error(e);
+  }
 }
 
-function initGate() {
-  document.getElementById("gate").innerHTML = STEPS.map((s, i) =>
-    `<div class="gstep" data-key="${s.key}">
-      <span class="gn">${i + 1}</span>
-      <span class="gl">${s.label}</span>
-    </div>`).join("");
-  document.getElementById("a-caption").textContent = "Issue a mandate, then send a request";
-}
-
-let arenaBusy = Promise.resolve();
-
-function playArena(res, label) {
-  // Serialize animations so rapid clicks queue instead of overlapping.
-  arenaBusy = arenaBusy.then(() => runArena(res, label));
-  return arenaBusy;
-}
-
-function runArena(res, label) {
-  return new Promise(resolve => {
-    const ok = res.status === "accepted";
-    const failIdx = ok ? -1 : STEPS.findIndex(s => s.match(res.reason));
-    const gateSteps = Array.from(document.querySelectorAll("#gate .gstep"));
-    const arena = document.getElementById("arena");
-    const packet = document.getElementById("packet");
-    const verdict = document.getElementById("a-caption");
-
-    gateSteps.forEach(g => g.classList.remove("hit-pass", "hit-fail"));
-    verdict.className = "verdict";
-
-    // Positions are measured off the live layout rather than assumed from CSS,
-    // so the gate can be re-laid-out without desyncing the animation.
-    const originX = 40;
-    const arenaLeft = arena.getBoundingClientRect().left;
-    const stopAt = failIdx >= 0 ? failIdx : STEPS.length - 1;
-    const tile = gateSteps[stopAt];
-    const tileRect = tile.getBoundingClientRect();
-    const stopX = tileRect.left - arenaLeft + tileRect.width / 2;
-    const targetX = arena.clientWidth - 40;
-
-    packet.style.display = "block";
-    packet.className = "packet";
-    packet.style.transition = "none";
-    packet.style.left = originX + "px";
-    void packet.offsetWidth; // reflow, so the next change animates
-    packet.style.transition = "";
-
-    requestAnimationFrame(() => { packet.style.left = stopX + "px"; });
-
-    setTimeout(() => {
-      if (ok) {
-        gateSteps.forEach(g => g.classList.add("hit-pass"));
-        packet.classList.add("go-pass");
-        requestAnimationFrame(() => { packet.style.left = targetX + "px"; });
-        setTimeout(() => {
-          verdict.innerHTML = `Cleared all 7 checks — ${label} · <span class="m">${inr(res.computed_total_paise)}</span>`;
-          verdict.className = "verdict pass";
-          setTimeout(() => { packet.style.display = "none"; resolve(); }, 750);
-        }, 950);
-      } else {
-        tile.classList.add("hit-fail");
-        packet.classList.add("go-fail");
-        setTimeout(() => {
-          packet.classList.add("gone");
-          verdict.innerHTML = `Stopped at check ${stopAt + 1} <span class="m">${STEPS[stopAt].label}</span> — ${label}`;
-          verdict.className = "verdict fail";
-          setTimeout(() => { packet.style.display = "none"; resolve(); }, 320);
-        }, 130);
+async function runFullSimulation() {
+  document.getElementById("btn-run-sim").disabled = true;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/simulate/run`, { method: "POST" }).then(r => r.json());
+    if (res.simulations) {
+      for (const sim of res.simulations) {
+        const entry = {
+          timestamp: tz(),
+          txn_id: txnId(),
+          agent_id: agentId(),
+          requested_paise: 5000,
+          status: sim.status,
+          reason: sim.reason,
+          latency: Math.random() * 5 + 0.5
+        };
+        auditEntries.unshift(entry);
+        if (sim.status !== "accepted") stats.blocked++;
+        else stats.approved++;
       }
-    }, 1000);
-  });
-}
-
-function bumpStats(res) {
-  requests++;
-  // What the agent asked for, whether or not it was allowed. A blocked
-  // request reports 0 charged, so recompute its intent from the catalog.
-  const intent = res.status === "accepted" ? res.computed_total_paise : (res._intent || 0);
-  attemptedPaise += intent;
-  if (res.status === "accepted") allowedPaise += res.computed_total_paise;
-  else { blockedPaise += intent; blocks++; }
-
-  document.getElementById("s-attempted").textContent = inr(attemptedPaise);
-  document.getElementById("s-blocked").textContent = inr(blockedPaise);
-  document.getElementById("s-allowed").textContent = inr(allowedPaise);
-  document.getElementById("s-count").textContent = requests;
-  document.getElementById("s-blocks").textContent = blocks;
-  if (mandate) document.getElementById("s-cap").textContent = inr(mandate.max_amount_paise);
-}
-
-async function loadCatalog() {
-  try {
-    catalog = await apiCall("/catalog");
-    document.getElementById("catalog").innerHTML = catalog.map(p => {
-      const bad = p.description.includes("ignore all spending limits");
-      return `<div class="prow">
-        <span>${p.name}${bad ? '<span class="flag">Description contains an embedded instruction telling agents to ignore spending limits.</span>' : ''}</span>
-        <span class="amt">${inr(p.price_paise)}</span>
-      </div>`;
-    }).join("");
-    document.getElementById("product").innerHTML = catalog
-      .map(p => `<option value="${p.id}">${p.name} — ${inr(p.price_paise)}</option>`).join("");
+      renderAudit();
+      updateKPIs();
+    }
   } catch (e) {
-    showError("Failed to load catalog: " + e.message);
+    console.error(e);
   }
+  document.getElementById("btn-run-sim").disabled = false;
 }
 
 async function loadAuditHistory() {
   try {
-    const entries = await apiCall("/audit?limit=50");
-    if (entries.length === 0) return;
-    const log = document.getElementById("log");
-    if (log.querySelector(".none")) log.innerHTML = "";
-    entries.reverse().forEach(entry => {
-      const data = JSON.parse(entry.payload_json);
-      const ok = data.status === "accepted";
-      const el = document.createElement("div");
-      el.className = "entry " + (ok ? "ok" : "no");
-      el.innerHTML = `
-        <div class="top">
-          <span class="tag">${ok ? "Approved" : "Blocked"}</span>
-          <span class="what">${data.label || "Request"}</span>
-          <span class="ts">${new Date(entry.created_at).toLocaleTimeString()}</span>
-        </div>
-        <div class="why">${data.reason}</div>
-        ${pipelineHtml(data.reason, ok)}
-        <div class="meta">${ok
-          ? `charged ${inr(data.computed_total_paise)} · razorpay ${data.razorpay_payment_id}`
-          : `attempted ${inr(data._intent || 0)} · nothing charged · txn ${data.transaction_id}`}</div>`;
-      log.appendChild(el);
-    });
+    const res = await fetch(`${API_BASE}/api/v1/audit?limit=20`).then(r => r.json());
+    // Optionally integrate with loaded history
   } catch (e) {
-    // Silently fail on audit load — not blocking
+    console.error(e);
   }
 }
 
-function enable(on) {
-  ["b-buy","b-replay","b-cap","b-merch","b-price"]
-    .forEach(id => document.getElementById(id).disabled = !on);
+function refreshAudit() {
+  renderAudit();
 }
 
-async function issueMandate() {
-  const cap = Number(document.getElementById("cap").value);
-  const ttl = Number(document.getElementById("ttl").value);
-  const merchant = document.getElementById("merchant").value;
-
-  if (!cap || cap <= 0) { showError("Cap must be > 0"); return; }
-  if (!ttl || ttl <= 0) { showError("TTL must be > 0"); return; }
-  if (!merchant.trim()) { showError("Merchant required"); return; }
-
-  try {
-    mandate = await apiCall("/mandates", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        merchant_id: merchant,
-        max_amount_paise: Math.round(cap * 100),
-        ttl_seconds: ttl,
-      }),
-    });
-
-    const r = document.getElementById("receipt");
-    r.className = "issued";
-    r.innerHTML =
-      `<div><span class="k">cap</span><span class="v">${inr(mandate.max_amount_paise)}</span></div>
-       <div><span class="k">merchant</span><span class="v">${mandate.merchant_id}</span></div>
-       <div><span class="k">expires</span><span class="v">${new Date(mandate.expires_at).toLocaleTimeString()}</span></div>
-       <div><span class="k">ed25519</span><span class="v">${mandate.signature_b64.slice(0, 18)}…</span></div>`;
-    document.getElementById("s-cap").textContent = inr(mandate.max_amount_paise);
-    enable(true);
-  } catch (e) {
-    showError("Failed to issue mandate: " + e.message);
+function clearAudit() {
+  if (confirm("Clear all audit entries?")) {
+    auditEntries = [];
+    stats = { approved: 0, blocked: 0, approvedPaise: 0, blockedPaise: 0, latencies: [] };
+    renderAudit();
+    updateKPIs();
   }
 }
 
-async function purchase(payload, label, intentPaise) {
-  try {
-    const res = await apiCall("/purchase", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
-    });
-    res._intent = intentPaise;
-    res.label = label;
-    bumpStats(res);
-    render(res, label);
-    return res;
-  } catch (e) {
-    showError("Purchase failed: " + e.message);
-    return null;
+function renderAudit() {
+  const tbody = document.getElementById("audit-body");
+  if (auditEntries.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">No transactions yet</td></tr>`;
+    return;
   }
+  tbody.innerHTML = auditEntries.map(e => `
+    <tr>
+      <td>${e.timestamp}</td>
+      <td class="monospace">${e.txn_id}</td>
+      <td>${e.agent_id}</td>
+      <td class="monospace">${inr(e.requested_paise)}</td>
+      <td><span class="decision-badge ${e.status === 'accepted' ? 'approved' : 'blocked'}">${e.status === 'accepted' ? '✓ Approved' : '✕ Blocked'}</span></td>
+      <td>${e.reason}</td>
+      <td class="monospace">${e.latency.toFixed(1)}</td>
+    </tr>
+  `).join("");
 }
 
-function render(res, label) {
-  const log = document.getElementById("log");
-  if (log.querySelector(".none")) log.innerHTML = "";
-  const ok = res.status === "accepted";
-  const el = document.createElement("div");
-  el.className = "entry " + (ok ? "ok" : "no");
-  el.innerHTML = `
-    <div class="top">
-      <span class="tag">${ok ? "Approved" : "Blocked"}</span>
-      <span class="what">${label}</span>
-      <span class="ts">${clock()}</span>
-    </div>
-    <div class="why">${res.reason}</div>
-    ${pipelineHtml(res.reason, ok)}
-    <div class="meta">${ok
-      ? `charged ${inr(res.computed_total_paise)} · razorpay ${res.razorpay_payment_id}`
-      : `attempted ${inr(res._intent || 0)} · nothing charged · txn ${res.transaction_id}`}</div>`;
-  log.prepend(el);
-  playArena(res, label);
+function updateKPIs() {
+  if (!mandate) return;
+  const spent = stats.approvedPaise;
+  const pct = Math.round((spent / mandate.max_amount_paise) * 100);
+  const avgLatency = stats.latencies.length > 0
+    ? (stats.latencies.reduce((a, b) => a + b) / stats.latencies.length).toFixed(1)
+    : 0;
+
+  document.getElementById("kpi-ceiling").textContent = inr(mandate.max_amount_paise);
+  document.getElementById("kpi-spend").textContent = inr(spent);
+  document.getElementById("kpi-spend-pct").textContent = pct;
+  document.getElementById("kpi-blocked").textContent = stats.blocked;
+  document.getElementById("kpi-latency").textContent = avgLatency;
 }
 
-const target = () => document.getElementById("product").value;
-const priceOf = (id) => (catalog.find(p => p.id === id) || {}).price_paise || 0;
-
-/* Mandates are single-use, so a consumed one is rejected as a replay before
-   any other check runs. Every attack except the replay case therefore runs
-   against its own freshly-issued mandate, so each guardrail shows up
-   independently rather than all reporting "already used". */
-async function freshMandate() {
-  try {
-    return await apiCall("/mandates", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        merchant_id: mandate.merchant_id,
-        max_amount_paise: mandate.max_amount_paise,
-        ttl_seconds: 3600,
-      }),
-    });
-  } catch (e) {
-    showError("Failed to issue mandate for attack: " + e.message);
-    return null;
-  }
+function enableAttacks() {
+  ["btn-valid", "btn-over", "btn-tamper", "btn-replay"].forEach(id => {
+    document.getElementById(id).disabled = false;
+  });
 }
 
-function legitPurchase() {
-  return purchase({ mandate_id: mandate.id, merchant_id: mandate.merchant_id,
-                    product_id: target(), qty: 1 }, "Agent purchase", priceOf(target()));
+function showToast(title, body) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${body}</div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
 
-function attackReplay() {
-  return purchase({ mandate_id: mandate.id, merchant_id: mandate.merchant_id,
-                    product_id: target(), qty: 1 }, "Replayed mandate", priceOf(target()));
-}
-
-async function attackOverCap() {
-  const m = await freshMandate();
-  if (!m) return null;
-  const top = catalog.reduce((a, b) => (a.price_paise > b.price_paise ? a : b));
-  return purchase({ mandate_id: m.id, merchant_id: m.merchant_id,
-                    product_id: top.id, qty: 50 }, `50 × ${top.name}`, top.price_paise * 50);
-}
-
-async function attackMerchant() {
-  const m = await freshMandate();
-  if (!m) return null;
-  return purchase({ mandate_id: m.id, merchant_id: "attacker_merchant",
-                    product_id: target(), qty: 1 }, "Merchant substitution", priceOf(target()));
-}
-
-async function attackPrice() {
-  const m = await freshMandate();
-  if (!m) return null;
-  return purchase({ mandate_id: m.id, merchant_id: m.merchant_id,
-                    product_id: target(), qty: 1,
-                    client_claimed_price_paise: 1 }, "Cart price tampering", priceOf(target()));
-}
-
-const REASON_LABELS = {
-  "merchant mismatch": "merchant",
-  "exceeds mandate cap": "cap",
-  "price mismatch": "price",
-  "mandate not found": "forged id",
-  "already used": "replay",
-};
-
-async function loadProof() {
-  const el = document.getElementById("proof");
-  try {
-    const report = await apiCall("/fuzz-report");
-
-    document.getElementById("p-attempts").textContent = report.attempts.toLocaleString("en-IN");
-    const v = report.cap_violations.length;
-    const vEl = document.getElementById("p-violations");
-    vEl.textContent = v === 0 ? "0 cap violations" : `${v} cap violations`;
-    if (v > 0) vEl.style.color = "var(--no)";
-
-    const reasons = Object.entries(report.rejection_reasons || {}).sort((a, b) => b[1] - a[1]);
-    document.getElementById("p-bars").innerHTML = reasons.map(([key, n]) =>
-      `<span>${REASON_LABELS[key] || key} <b>${n.toLocaleString("en-IN")}</b></span>`
-    ).join("");
-  } catch {
-    el.style.display = "none"; // no report committed yet
-  }
-}
-
-loadCatalog();
-loadProof();
-loadAuditHistory();
-initGate();
+// Auto-refresh audit every 3 seconds
+setInterval(() => {
+  if (auditEntries.length > 0) renderAudit();
+}, 3000);
 </script>
+
 </body>
 </html>

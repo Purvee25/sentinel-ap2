@@ -2,7 +2,9 @@
 
 A guardrail layer that sits between an AI agent and a payment gateway, so the agent can spend money without being trusted.
 
-Built for the [Razorpay AI Buildathon](https://razorpay.com/buildathon/), Track 01.
+**[Live demo →](https://sentinel-ap2-1.onrender.com)** · Built for the [Razorpay AI Buildathon](https://razorpay.com/buildathon/), Track 01.
+
+> Open the demo, click **"Run the attack demo"**, and watch five purchase attempts hit five different guardrail checks — one accepted, four blocked, all in under 300ms.
 
 ---
 
@@ -28,6 +30,21 @@ price tampering         ✓          ✓         ✓        ✓        ✕      
 The `50 × earbuds` row is the interesting one. That product's description contains an
 instruction telling any agent reading it to ignore its spending limits. It failed on
 arithmetic — `29995000 > 150000` — without anything having read the text.
+
+---
+
+## Quick orientation
+
+| What | Where |
+|---|---|
+| The guardrail (the actual project) | `app/guardrail.py` |
+| Ed25519 mandate signing + verification | `app/mandate.py` |
+| Catalog price truth (injection-proof) | `app/catalog.py` |
+| Razorpay order creation (mock-safe) | `app/razorpay_client.py` |
+| The buyer agent (client of the guardrail) | `app/agent.py` |
+| 17 named-attack tests | `tests/` |
+| 50,000-attempt fuzz run | `scripts/fuzz.py` · results in `MEASUREMENTS.md` |
+| Interactive console | [sentinel-ap2-1.onrender.com](https://sentinel-ap2-1.onrender.com) |
 
 ---
 

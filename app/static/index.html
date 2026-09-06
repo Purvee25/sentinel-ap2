@@ -416,7 +416,14 @@ async function fireAction(id) {
   btn.classList.add("running"); btn.disabled = true;
   var t0 = performance.now();
   try {
-    var res = await api("/purchase", { mandate_id: state.mandate.id, merchant_id: spec.merchant_id, product_id: spec.product_id, qty: spec.qty, client_claimed_price_paise: spec.client_claimed_price_paise || null });
+    // Attack buttons (except replay) use a fresh mandate so each hits a different
+    // guardrail check. Replay deliberately reuses the sidebar mandate (already consumed).
+    var mandateId = state.mandate.id;
+    if (id !== "a-replay" && id !== "a-valid") {
+      var fresh = await api("/mandates", { merchant_id: state.mandate.merchant_id, max_amount_paise: state.mandate.max_amount_paise, ttl_seconds: 3600 });
+      mandateId = fresh.id;
+    }
+    var res = await api("/purchase", { mandate_id: mandateId, merchant_id: spec.merchant_id, product_id: spec.product_id, qty: spec.qty, client_claimed_price_paise: spec.client_claimed_price_paise || null });
     record({ scenario: label, status: res.status, reason: res.reason, computed_total_paise: res.computed_total_paise, transaction_id: res.transaction_id, latency_ms: performance.now() - t0 });
   } catch (e) { toast("failed", label + " — request failed", e.message); }
   finally { btn.classList.remove("running"); btn.disabled = false; refreshMandate(); }

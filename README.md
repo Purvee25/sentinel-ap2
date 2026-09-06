@@ -2,7 +2,7 @@
 
 A guardrail layer that sits between an AI agent and a payment gateway, so the agent can spend money without being trusted.
 
-**[Live demo →](https://sentinel-ap2-1.onrender.com)** · Built for the [Razorpay AI Buildathon](https://razorpay.com/buildathon/), Track 01.
+**[Live demo →](https://sentinel-ap2-1.onrender.com)** · **[Pitch video →](https://www.loom.com/share/b20f72cba49743f0a9d2907b34ceba63)** · Built for the [Razorpay AI Buildathon](https://razorpay.com/buildathon/), Track 01.
 
 > Open the demo, click **"Run the attack demo"**, and watch five purchase attempts hit five different guardrail checks — one accepted, four blocked, all in under 300ms.
 

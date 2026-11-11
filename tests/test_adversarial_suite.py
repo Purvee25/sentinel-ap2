@@ -3,6 +3,9 @@
 Each test simulates one attack an autonomous buyer agent (compromised,
 buggy, or hallucinating) could attempt against the payment middleware.
 Every one of them must be REJECTED with a specific, auditable reason.
+
+ADVERSARIAL TDD: these tests were written BEFORE the enforcement code in
+guardrail.py — the guardrail was built to make them pass, not the other way.
 """
 
 from app.database import SessionLocal
@@ -10,7 +13,10 @@ from app.db_models import Mandate
 from app.mandate import create_signed_mandate
 
 
+# --- helpers ----------------------------------------------------------------
+
 def _issue_mandate(client, merchant_id="merchant_xyz", max_amount_paise=100000, ttl_seconds=3600):
+    # create a signed spending permission via the API
     resp = client.post("/mandates", json={
         "merchant_id": merchant_id, "max_amount_paise": max_amount_paise, "ttl_seconds": ttl_seconds,
     })
@@ -19,17 +25,22 @@ def _issue_mandate(client, merchant_id="merchant_xyz", max_amount_paise=100000, 
 
 
 def _cheap_product(client):
+    # cheapest catalog item — always within a reasonable cap
     products = client.get("/catalog").json()
     return min(products, key=lambda p: p["price_paise"])
 
 
 def _expensive_product(client):
+    # most expensive catalog item — used to trigger cap violations
     products = client.get("/catalog").json()
     return max(products, key=lambda p: p["price_paise"])
 
 
+# --- tests ------------------------------------------------------------------
+
 def test_legitimate_purchase_is_accepted(client):
-    mandate = _issue_mandate(client, max_amount_paise=1000000)
+    # HAPPY PATH — valid mandate + correct merchant + within cap → accepted
+    mandate = _issue_mandate(client, max_amount_paise=1000000)  # ₹10,000 cap
     product = _cheap_product(client)
 
     resp = client.post("/purchase", json={
@@ -38,12 +49,12 @@ def test_legitimate_purchase_is_accepted(client):
     })
     body = resp.json()
     assert body["status"] == "accepted"
-    assert body["computed_total_paise"] == product["price_paise"]
-    assert body["razorpay_payment_id"]
+    assert body["computed_total_paise"] == product["price_paise"]  # server used catalog price
+    assert body["razorpay_payment_id"]  # Razorpay actually processed it
 
 
 def test_over_cap_purchase_is_rejected(client):
-    """Attack: agent tries to spend more than the mandate allows."""
+    # ATTACK: agent tries to buy something worth more than mandate allows
     mandate = _issue_mandate(client, max_amount_paise=50000)  # ₹500 cap
     product = _expensive_product(client)  # costs more than ₹500
 
@@ -57,9 +68,9 @@ def test_over_cap_purchase_is_rejected(client):
 
 
 def test_quantity_overflow_is_rejected(client):
-    """Attack: single-item price is within cap, but qty pushes it over."""
-    mandate = _issue_mandate(client, max_amount_paise=200000)
-    product = _cheap_product(client)  # ₹899, so qty=1000 blows way past ₹2000 cap
+    # ATTACK: single item price looks fine, but large qty pushes total over cap
+    mandate = _issue_mandate(client, max_amount_paise=200000)  # ₹2,000 cap
+    product = _cheap_product(client)  # ₹899 each — qty=1000 → ₹8,99,000, way over cap
 
     resp = client.post("/purchase", json={
         "mandate_id": mandate["id"], "merchant_id": mandate["merchant_id"],
@@ -71,7 +82,8 @@ def test_quantity_overflow_is_rejected(client):
 
 
 def test_expired_mandate_is_rejected(client):
-    """Attack: agent replays an old mandate after its validity window."""
+    # ATTACK: agent replays an old mandate after its TTL window has passed
+    # ttl_seconds=-10 creates a mandate already expired at creation time
     signed = create_signed_mandate(merchant_id="merchant_xyz", max_amount_paise=1000000, ttl_seconds=-10)
     db = SessionLocal()
     db.add(Mandate(
@@ -93,8 +105,8 @@ def test_expired_mandate_is_rejected(client):
 
 
 def test_mandate_replay_is_rejected(client):
-    """Attack: agent (or attacker who intercepted the mandate) reuses a
-    mandate that already funded a successful purchase."""
+    # ATTACK: reuse a mandate that already funded one purchase
+    # first purchase succeeds; second with same mandate_id must be blocked
     mandate = _issue_mandate(client, max_amount_paise=1000000)
     product = _cheap_product(client)
     purchase_body = {
@@ -103,20 +115,20 @@ def test_mandate_replay_is_rejected(client):
     }
 
     first = client.post("/purchase", json=purchase_body).json()
-    assert first["status"] == "accepted"
+    assert first["status"] == "accepted"  # first use: OK
 
     second = client.post("/purchase", json=purchase_body).json()
-    assert second["status"] == "rejected"
+    assert second["status"] == "rejected"  # mandate already consumed
     assert "already used" in second["reason"]
 
 
 def test_merchant_substitution_is_rejected(client):
-    """Attack: mandate was scoped to one merchant, agent tries to spend it elsewhere."""
+    # ATTACK: mandate issued for merchant_xyz, but request targets a different merchant
     mandate = _issue_mandate(client, merchant_id="merchant_xyz", max_amount_paise=1000000)
     product = _cheap_product(client)
 
     resp = client.post("/purchase", json={
-        "mandate_id": mandate["id"], "merchant_id": "some_other_merchant",
+        "mandate_id": mandate["id"], "merchant_id": "some_other_merchant",  # wrong merchant
         "product_id": product["id"], "qty": 1,
     })
     body = resp.json()
@@ -125,8 +137,8 @@ def test_merchant_substitution_is_rejected(client):
 
 
 def test_tampered_mandate_signature_is_rejected(client):
-    """Attack: attacker (or a buggy agent) edits the mandate's max amount
-    directly in transit/storage after it was signed."""
+    # ATTACK: directly edit the DB row to raise cap AFTER the mandate was signed
+    # Ed25519 re-verifies on every purchase — tampered field breaks the signature
     mandate = _issue_mandate(client, max_amount_paise=10000)  # signed for ₹100
 
     db = SessionLocal()
@@ -142,19 +154,19 @@ def test_tampered_mandate_signature_is_rejected(client):
     })
     body = resp.json()
     assert body["status"] == "rejected"
-    assert "invalid mandate signature" in body["reason"]
+    assert "invalid mandate signature" in body["reason"]  # Ed25519 caught the tamper
 
 
 def test_tampered_cart_price_is_rejected(client):
-    """Attack: agent (hallucinating or manipulated) claims a price that
-    doesn't match catalog truth — server must trust its own DB, not the caller."""
+    # ATTACK: agent claims product costs ₹0.01 (hallucinated or injected price)
+    # server ignores client_claimed_price_paise and uses catalog; mismatch = rejection
     mandate = _issue_mandate(client, max_amount_paise=1000000)
     product = _cheap_product(client)
 
     resp = client.post("/purchase", json={
         "mandate_id": mandate["id"], "merchant_id": mandate["merchant_id"],
         "product_id": product["id"], "qty": 1,
-        "client_claimed_price_paise": 1,  # agent claims it costs ₹0.01
+        "client_claimed_price_paise": 1,  # agent claims ₹0.01; catalog says much more
     })
     body = resp.json()
     assert body["status"] == "rejected"
@@ -162,10 +174,9 @@ def test_tampered_cart_price_is_rejected(client):
 
 
 def test_payment_failure_does_not_reopen_the_mandate(monkeypatch, client):
-    """If Razorpay fails after the guardrail approved a purchase, the mandate
-    stays consumed. Re-opening it would hand a caller a free retry against an
-    authorization the user already spent, and we cannot tell from here whether
-    the order was created before the failure."""
+    # CONSUME-BEFORE-PAYMENT test: mandate marked consumed BEFORE Razorpay call
+    # if gateway crashes, mandate stays consumed — retry blocked as "already used"
+    # this prevents double-charge via failure + retry
     from app import guardrail
     from app.razorpay_client import PaymentExecutionError
 
@@ -175,7 +186,7 @@ def test_payment_failure_does_not_reopen_the_mandate(monkeypatch, client):
     def boom(*args, **kwargs):
         raise PaymentExecutionError("gateway timeout")
 
-    monkeypatch.setattr(guardrail, "create_test_order", boom)
+    monkeypatch.setattr(guardrail, "create_test_order", boom)  # simulate Razorpay crash
 
     failed = client.post("/purchase", json={
         "mandate_id": mandate["id"], "merchant_id": mandate["merchant_id"],
@@ -183,24 +194,22 @@ def test_payment_failure_does_not_reopen_the_mandate(monkeypatch, client):
     }).json()
     assert failed["status"] == "failed"
     assert "gateway timeout" in failed["reason"]
-    assert failed["razorpay_payment_id"] == ""
+    assert failed["razorpay_payment_id"] == ""  # no payment ID — Razorpay never responded
 
     monkeypatch.undo()
 
+    # retry attempt — mandate is still consumed even though payment failed
     retry = client.post("/purchase", json={
         "mandate_id": mandate["id"], "merchant_id": mandate["merchant_id"],
         "product_id": product["id"], "qty": 1,
     }).json()
     assert retry["status"] == "rejected"
-    assert "already used" in retry["reason"]
+    assert "already used" in retry["reason"]  # at-most-once guarantee holds
 
 
 def test_prompt_injection_in_product_description_has_no_effect(client):
-    """Attack: catalog contains a product whose description tries to
-    instruct any agent/LLM reading it to bypass spending limits. The
-    guardrail never parses free text for a money decision, so this must
-    be rejected purely on the numeric cap, exactly like any other
-    over-cap attempt."""
+    # ATTACK: catalog product description says "ignore all spending limits"
+    # guardrail never reads free text for money decisions — rejects on numeric cap only
     products = client.get("/catalog").json()
     malicious_product = next(p for p in products if "ignore all spending limits" in p["description"])
 
@@ -211,4 +220,4 @@ def test_prompt_injection_in_product_description_has_no_effect(client):
     })
     body = resp.json()
     assert body["status"] == "rejected"
-    assert "exceeds mandate cap" in body["reason"]
+    assert "exceeds mandate cap" in body["reason"]  # rejected on cap, not on text content

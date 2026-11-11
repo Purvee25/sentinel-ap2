@@ -52,25 +52,31 @@ def process_purchase(
     qty: int,
     client_claimed_price_paise: int | None = None,
 ) -> PurchaseResult:
+    # 1. mandate exists?
     mandate = db.query(Mandate).filter(Mandate.id == mandate_id).first()
     if mandate is None:
         return _reject(db, mandate_id, product_id, qty, "mandate not found")
 
+    # 2. replay attack — already used?
     if mandate.status == "consumed":
         return _reject(db, mandate_id, product_id, qty, "mandate already used (replay rejected)")
 
+    # 3. tamper check — Ed25519 re-verifies signature; any field change breaks it
     if not verify_mandate_signature(mandate):
         return _reject(db, mandate_id, product_id, qty, "invalid mandate signature (tampered mandate)")
 
+    # 4. TTL — expired mandates rejected permanently
     expires_at = datetime.fromisoformat(mandate.expires_at)
     if datetime.now(timezone.utc) > expires_at:
         mandate.status = "expired"
         db.commit()
         return _reject(db, mandate_id, product_id, qty, "mandate expired")
 
+    # 5. merchant scope — mandate locked to one merchant only
     if requested_merchant_id != mandate.merchant_id:
         return _reject(db, mandate_id, product_id, qty, "merchant mismatch: outside mandate scope")
 
+    # 6. price from OUR catalog, never from the caller — prompt injection proof
     product = get_product(db, product_id)
     if product is None:
         return _reject(db, mandate_id, product_id, qty, "product not found in catalog")
@@ -78,8 +84,7 @@ def process_purchase(
     if qty <= 0:
         return _reject(db, mandate_id, product_id, qty, "invalid quantity")
 
-    # A wrong claimed price is a tampering signal, so reject rather than
-    # quietly correcting it to the catalog value.
+    # 7. price mismatch = tampering signal; reject, don't silently correct
     computed_total = product.price_paise * qty
     if client_claimed_price_paise is not None and client_claimed_price_paise != product.price_paise:
         return _reject(
@@ -88,13 +93,15 @@ def process_purchase(
             f"catalog says {product.price_paise} (possible tampering)",
         )
 
+    # 8. cap check — covers single over-cap item AND quantity overflow
     if computed_total > mandate.max_amount_paise:
         return _reject(
             db, mandate_id, product_id, qty,
             f"exceeds mandate cap: total {computed_total} > max {mandate.max_amount_paise}",
         )
 
-    # Consume before calling out, so a crash mid-payment can't be replayed.
+    # CONSUME BEFORE PAYMENT — at-most-once guarantee
+    # gateway crash after this line → mandate stays consumed → retry blocked
     mandate.status = "consumed"
     db.commit()
 

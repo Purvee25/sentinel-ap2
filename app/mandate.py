@@ -24,19 +24,20 @@ def _canonical_payload(mandate_id: str, merchant_id: str, max_amount_paise: int,
         "expires_at": expires_at,
         "nonce": nonce,
     }
+    # sort_keys + no spaces = deterministic bytes; same dict always produces same signature input
     return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
 def create_signed_mandate(merchant_id: str, max_amount_paise: int, ttl_seconds: int) -> dict:
     mandate_id = str(uuid.uuid4())
-    nonce = str(uuid.uuid4())
+    nonce = str(uuid.uuid4())  # nonce prevents two identical mandates having the same signature
     now = datetime.now(timezone.utc)
     issued_at = now.isoformat()
     expires_at = (now + timedelta(seconds=ttl_seconds)).isoformat()
 
     payload = _canonical_payload(mandate_id, merchant_id, max_amount_paise, issued_at, expires_at, nonce)
     private_key = load_or_create_private_key()
-    signature = private_key.sign(payload)
+    signature = private_key.sign(payload)  # Ed25519 sign — private key used only here, never stored in response
 
     return {
         "id": mandate_id,
@@ -45,16 +46,15 @@ def create_signed_mandate(merchant_id: str, max_amount_paise: int, ttl_seconds: 
         "nonce": nonce,
         "issued_at": issued_at,
         "expires_at": expires_at,
-        "signature_b64": base64.b64encode(signature).decode("ascii"),
+        "signature_b64": base64.b64encode(signature).decode("ascii"),  # stored in DB, verified on every purchase
     }
 
 
 def verify_mandate_signature(mandate) -> bool:
-    """Rebuilds the signed payload from the stored fields and checks it.
-
-    Anything edited after issuance — a bumped cap, a swapped merchant —
-    fails here.
+    """Rebuild payload from DB fields and verify against stored signature.
+    Any field tampered after signing (cap bumped, merchant swapped) breaks this.
     """
+    # rebuild exact same bytes from what's in the DB right now
     payload = _canonical_payload(
         mandate.id, mandate.merchant_id, mandate.max_amount_paise,
         mandate.issued_at, mandate.expires_at, mandate.nonce,
@@ -62,6 +62,6 @@ def verify_mandate_signature(mandate) -> bool:
     public_key = load_public_key()
     try:
         public_key.verify(base64.b64decode(mandate.signature_b64), payload)
-        return True
+        return True  # DB fields match what was originally signed
     except InvalidSignature:
-        return False
+        return False  # something was changed after signing

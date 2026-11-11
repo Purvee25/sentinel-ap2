@@ -1,9 +1,11 @@
 from pydantic import BaseModel, Field
 
+# Pydantic models = typed request/response contracts; validation is automatic
+
 
 class MandateCreateRequest(BaseModel):
     merchant_id: str
-    max_amount_paise: int = Field(gt=0)
+    max_amount_paise: int = Field(gt=0)                      # spending cap in paise (100 paise = ₹1)
     ttl_seconds: int = Field(gt=0, le=604800, description="Mandate validity window, max 7 days")
 
 
@@ -31,8 +33,7 @@ class PurchaseRequest(BaseModel):
     merchant_id: str
     product_id: str
     qty: int = Field(gt=0)
-    # Optional: what the calling agent *believes* the price is. Never trusted
-    # for the actual charge — used only to detect a tampered/hallucinated cart.
+    # agent's claimed price — NEVER used for the charge; only compared to catalog to detect tampering
     client_claimed_price_paise: int | None = None
 
 

@@ -18,7 +18,7 @@ from typing import Any, Callable
 import httpx
 
 MODEL = "claude-opus-5"
-MAX_STEPS = 12  # hard cap on agent turns; the loop always terminates
+MAX_STEPS = 12  # hard step cap — prevents infinite loops even if the model keeps calling tools
 
 SYSTEM_PROMPT = """You are an autonomous purchasing agent acting on a user's behalf.
 
@@ -110,8 +110,7 @@ class BuyerAgent:
         })
 
     def _dispatch(self, name: str, args: dict) -> tuple[str, bool]:
-        """Returns (result_json, is_error). Tool args are validated here rather
-        than trusted, since they originate from model output."""
+        """Returns (result_json, is_error). Args come from Claude — validated here, never trusted."""
         try:
             if name == "search_catalog":
                 return self._tool_search_catalog(), False

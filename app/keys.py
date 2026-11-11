@@ -21,7 +21,7 @@ PUBLIC_KEY_PATH = KEY_DIR / "user_public_key.pem"
 
 
 def _generate_and_save() -> Ed25519PrivateKey:
-    private_key = Ed25519PrivateKey.generate()
+    private_key = Ed25519PrivateKey.generate()  # generate a fresh Ed25519 keypair
     PRIVATE_KEY_PATH.write_bytes(
         private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
@@ -41,10 +41,10 @@ def _generate_and_save() -> Ed25519PrivateKey:
 def load_or_create_private_key() -> Ed25519PrivateKey:
     if PRIVATE_KEY_PATH.exists():
         return serialization.load_pem_private_key(PRIVATE_KEY_PATH.read_bytes(), password=None)
-    return _generate_and_save()
+    return _generate_and_save()  # first run: generate and persist to disk
 
 
 def load_public_key() -> Ed25519PublicKey:
     if not PUBLIC_KEY_PATH.exists():
-        load_or_create_private_key()
+        load_or_create_private_key()  # ensure keypair exists before reading public key
     return serialization.load_pem_public_key(PUBLIC_KEY_PATH.read_bytes())

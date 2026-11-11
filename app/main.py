@@ -21,10 +21,10 @@ FUZZ_REPORT_PATH = Path(__file__).parent.parent / "fuzz_report.json"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)  # create all DB tables on startup
     db = SessionLocal()
     try:
-        seed_catalog(db)
+        seed_catalog(db)  # populate catalog once; no-op if already seeded
     finally:
         db.close()
     yield
@@ -46,7 +46,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount routers at both /api/v1 (new) and / (legacy) for backward compatibility
+# Mount routers at /api/v1 (versioned) and / (legacy) so old calls still work
 app.include_router(mandates.router, prefix="/api/v1")
 app.include_router(purchase.router, prefix="/api/v1")
 app.include_router(audit.router, prefix="/api/v1")
@@ -74,7 +74,7 @@ def fuzz_report():
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
-SIMULATION_CAP_PAISE = 150_000  # ₹1,500, matches the README walkthrough
+SIMULATION_CAP_PAISE = 150_000  # ₹1,500 — small cap so the over-budget scenario always fires
 SIMULATION_TTL_SECONDS = 3600
 
 
@@ -104,13 +104,13 @@ def run_adversarial_simulation():
         legit = _issue_mandate(db, merchant, SIMULATION_CAP_PAISE)
         scenarios = [
             ("Legitimate purchase", legit.id, merchant, mouse.id, 1, None),
-            ("Replay attack", legit.id, merchant, mouse.id, 1, None),
+            ("Replay attack", legit.id, merchant, mouse.id, 1, None),         # same mandate reused
             ("Over-budget (injected product)", _issue_mandate(db, merchant, SIMULATION_CAP_PAISE).id,
-             merchant, earbuds.id, 50, None),
+             merchant, earbuds.id, 50, None),                                  # prompt-injection product, qty×price >> cap
             ("Merchant swap", _issue_mandate(db, merchant, SIMULATION_CAP_PAISE).id,
-             "attacker_merchant", mouse.id, 1, None),
+             "attacker_merchant", mouse.id, 1, None),                          # mandate locked to merchant_xyz
             ("Price tampering", _issue_mandate(db, merchant, SIMULATION_CAP_PAISE).id,
-             merchant, mouse.id, 1, 100),
+             merchant, mouse.id, 1, 100),                                      # client claims ₹1; catalog says ₹899
         ]
 
         results = []

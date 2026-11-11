@@ -21,7 +21,7 @@ class Product(Base):
     id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
     merchant_id: Mapped[str] = mapped_column(String, index=True)
     name: Mapped[str] = mapped_column(String)
-    price_paise: Mapped[int] = mapped_column(Integer)  # source of truth for price
+    price_paise: Mapped[int] = mapped_column(Integer)  # server's source of truth — never taken from the request
     description: Mapped[str] = mapped_column(String, default="")
 
 
@@ -32,10 +32,10 @@ class Mandate(Base):
     merchant_id: Mapped[str] = mapped_column(String, index=True)
     max_amount_paise: Mapped[int] = mapped_column(Integer)
     nonce: Mapped[str] = mapped_column(String, unique=True, index=True)
-    issued_at: Mapped[str] = mapped_column(String)  # ISO string, part of signed payload
+    issued_at: Mapped[str] = mapped_column(String)   # ISO string, included in Ed25519 signed payload
     expires_at: Mapped[str] = mapped_column(String)
     signature_b64: Mapped[str] = mapped_column(String)
-    status: Mapped[str] = mapped_column(String, default="active")  # active | consumed | expired
+    status: Mapped[str] = mapped_column(String, default="active")  # active → consumed (at-most-once) or expired
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 

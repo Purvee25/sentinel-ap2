@@ -188,93 +188,102 @@ h1 {
         </marker>
       </defs>
 
+      <!-- Title -->
+      <text x="380" y="28" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="17" font-weight="700" fill="#c0392b">SENTINEL-AP2 · Payment Guardrail</text>
+      <text x="380" y="50" text-anchor="middle" font-size="12" fill="#888">AI agent wants to buy something → 8 security checks → pay or block</text>
+
+      <!-- Step labels -->
+      <text x="55" y="88" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 1</text>
+      <text x="195" y="88" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 2</text>
+      <text x="355" y="88" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 3</text>
+      <text x="537" y="88" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 4 (8 checks)</text>
+      <text x="690" y="88" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 5</text>
+
       <!-- USER -->
-      <rect x="20" y="175" width="90" height="52" rx="8" fill="#fff3f2" stroke="#c0392b" stroke-width="1.5"/>
-      <text x="65" y="197" text-anchor="middle" font-weight="600" fill="#c0392b" font-size="12">User / App</text>
-      <text x="65" y="214" text-anchor="middle" fill="#888" font-size="11">issues mandate</text>
+      <rect x="10" y="100" width="90" height="60" rx="10" fill="#fff3f2" stroke="#c0392b" stroke-width="2"/>
+      <text x="55" y="126" text-anchor="middle" font-weight="700" fill="#c0392b" font-size="13">User</text>
+      <text x="55" y="145" text-anchor="middle" fill="#888" font-size="11">issues a</text>
+      <text x="55" y="158" text-anchor="middle" fill="#888" font-size="11">mandate</text>
 
       <!-- BUYER AGENT -->
-      <rect x="155" y="155" width="110" height="90" rx="8" fill="#fff3f2" stroke="#c0392b" stroke-width="1.5"/>
-      <text x="210" y="178" text-anchor="middle" font-weight="600" fill="#c0392b" font-size="12">BuyerAgent</text>
-      <text x="210" y="195" text-anchor="middle" fill="#888" font-size="11">(Claude LLM)</text>
-      <text x="210" y="213" text-anchor="middle" fill="#c0392b" font-size="10">MAX_STEPS=12</text>
-      <text x="210" y="229" text-anchor="middle" fill="#888" font-size="10">tool-calling loop</text>
+      <rect x="140" y="100" width="110" height="60" rx="10" fill="#fff3f2" stroke="#c0392b" stroke-width="2"/>
+      <text x="195" y="126" text-anchor="middle" font-weight="700" fill="#c0392b" font-size="13">AI Agent</text>
+      <text x="195" y="145" text-anchor="middle" fill="#888" font-size="11">browses catalog</text>
+      <text x="195" y="158" text-anchor="middle" fill="#888" font-size="11">calls /purchase</text>
 
-      <!-- Arrow user -> agent -->
-      <line x1="110" y1="201" x2="153" y2="201" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arr-s)"/>
-      <text x="131" y="195" text-anchor="middle" fill="#888" font-size="10">mandate</text>
+      <!-- Arrow -->
+      <line x1="100" y1="130" x2="138" y2="130" stroke="#c0392b" stroke-width="2" marker-end="url(#arr-s)"/>
 
       <!-- FASTAPI -->
-      <rect x="315" y="155" width="110" height="90" rx="8" fill="#f4f8ff" stroke="#3a6ea5" stroke-width="1.5"/>
-      <text x="370" y="178" text-anchor="middle" font-weight="600" fill="#3a6ea5" font-size="12">FastAPI</text>
-      <text x="370" y="195" text-anchor="middle" fill="#888" font-size="11">main.py</text>
-      <text x="370" y="213" text-anchor="middle" fill="#888" font-size="10">/purchase</text>
-      <text x="370" y="228" text-anchor="middle" fill="#888" font-size="10">/mandates /catalog</text>
+      <rect x="300" y="100" width="110" height="60" rx="10" fill="#f4f8ff" stroke="#3a6ea5" stroke-width="2"/>
+      <text x="355" y="126" text-anchor="middle" font-weight="700" fill="#3a6ea5" font-size="13">FastAPI</text>
+      <text x="355" y="145" text-anchor="middle" fill="#888" font-size="11">receives the</text>
+      <text x="355" y="158" text-anchor="middle" fill="#888" font-size="11">purchase request</text>
 
-      <!-- Arrow agent -> fastapi -->
-      <line x1="265" y1="200" x2="313" y2="200" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arr-s)"/>
-      <text x="289" y="193" text-anchor="middle" fill="#888" font-size="10">POST /purchase</text>
+      <line x1="250" y1="130" x2="298" y2="130" stroke="#c0392b" stroke-width="2" marker-end="url(#arr-s)"/>
 
-      <!-- GUARDRAIL -->
-      <rect x="472" y="100" width="130" height="210" rx="8" fill="#fff9f0" stroke="#e67e22" stroke-width="1.5"/>
-      <text x="537" y="123" text-anchor="middle" font-weight="700" fill="#e67e22" font-size="12">Guardrail</text>
-      <text x="537" y="140" text-anchor="middle" fill="#888" font-size="10">guardrail.py</text>
-      <line x1="482" y1="147" x2="592" y2="147" stroke="#e67e22" stroke-width="0.8" stroke-dasharray="3,2"/>
-      <text x="537" y="162" text-anchor="middle" fill="#c0392b" font-size="10">① mandate exists?</text>
-      <text x="537" y="177" text-anchor="middle" fill="#c0392b" font-size="10">② not consumed?</text>
-      <text x="537" y="192" text-anchor="middle" fill="#c0392b" font-size="10">③ Ed25519 valid?</text>
-      <text x="537" y="207" text-anchor="middle" fill="#c0392b" font-size="10">④ not expired?</text>
-      <text x="537" y="222" text-anchor="middle" fill="#c0392b" font-size="10">⑤ merchant match?</text>
-      <text x="537" y="237" text-anchor="middle" fill="#c0392b" font-size="10">⑥ catalog price</text>
-      <text x="537" y="252" text-anchor="middle" fill="#c0392b" font-size="10">⑦ price match?</text>
-      <text x="537" y="267" text-anchor="middle" fill="#c0392b" font-size="10">⑧ cap check</text>
-      <text x="537" y="285" text-anchor="middle" fill="#888" font-size="9">consume BEFORE payment</text>
-      <text x="537" y="299" text-anchor="middle" fill="#888" font-size="9">(at-most-once)</text>
+      <!-- GUARDRAIL box -->
+      <rect x="460" y="68" width="155" height="234" rx="10" fill="#fffbf5" stroke="#e67e22" stroke-width="2.5"/>
+      <text x="537" y="92" text-anchor="middle" font-weight="700" fill="#e67e22" font-size="14">Guardrail</text>
+      <line x1="470" y1="100" x2="605" y2="100" stroke="#e67e22" stroke-width="1" stroke-dasharray="3,2"/>
+
+      <!-- 8 checks -->
+      <rect x="472" y="108" width="131" height="22" rx="5" fill="#fff3f2"/>
+      <text x="537" y="123" text-anchor="middle" fill="#c0392b" font-size="11">① Mandate exists?</text>
+
+      <rect x="472" y="134" width="131" height="22" rx="5" fill="#fff3f2"/>
+      <text x="537" y="149" text-anchor="middle" fill="#c0392b" font-size="11">② Not already used?</text>
+
+      <rect x="472" y="160" width="131" height="22" rx="5" fill="#fff3f2"/>
+      <text x="537" y="175" text-anchor="middle" fill="#c0392b" font-size="11">③ Signature valid?</text>
+
+      <rect x="472" y="186" width="131" height="22" rx="5" fill="#fff3f2"/>
+      <text x="537" y="201" text-anchor="middle" fill="#c0392b" font-size="11">④ Not expired?</text>
+
+      <rect x="472" y="212" width="131" height="22" rx="5" fill="#fff3f2"/>
+      <text x="537" y="227" text-anchor="middle" fill="#c0392b" font-size="11">⑤ Right merchant?</text>
+
+      <rect x="472" y="238" width="131" height="22" rx="5" fill="#fff3f2"/>
+      <text x="537" y="253" text-anchor="middle" fill="#c0392b" font-size="11">⑥ Our catalog price</text>
+
+      <rect x="472" y="264" width="131" height="22" rx="5" fill="#fff3f2"/>
+      <text x="537" y="279" text-anchor="middle" fill="#c0392b" font-size="11">⑦ Price not tampered?</text>
+
+      <rect x="472" y="290" width="131" height="22" rx="5" fill="#c0392b"/>
+      <text x="537" y="305" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">⑧ Within spending cap?</text>
 
       <!-- Arrow FastAPI -> Guardrail -->
-      <line x1="425" y1="200" x2="470" y2="200" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arr-s)"/>
+      <line x1="410" y1="130" x2="458" y2="175" stroke="#c0392b" stroke-width="2" marker-end="url(#arr-s)"/>
 
       <!-- RAZORPAY -->
-      <rect x="650" y="155" width="90" height="52" rx="8" fill="#f0fff4" stroke="#2e7d32" stroke-width="1.5"/>
-      <text x="695" y="178" text-anchor="middle" font-weight="600" fill="#2e7d32" font-size="12">Razorpay</text>
-      <text x="695" y="195" text-anchor="middle" fill="#888" font-size="11">test-mode</text>
+      <rect x="648" y="100" width="100" height="60" rx="10" fill="#f0fff4" stroke="#2e7d32" stroke-width="2"/>
+      <text x="698" y="126" text-anchor="middle" font-weight="700" fill="#2e7d32" font-size="13">Razorpay</text>
+      <text x="698" y="145" text-anchor="middle" fill="#888" font-size="11">payment</text>
+      <text x="698" y="158" text-anchor="middle" fill="#888" font-size="11">gateway ✓</text>
 
-      <!-- Arrow guardrail -> razorpay (only if pass) -->
-      <line x1="602" y1="200" x2="648" y2="200" stroke="#2e7d32" stroke-width="1.5" marker-end="url(#arr-s)"/>
-      <text x="625" y="193" text-anchor="middle" fill="#2e7d32" font-size="10">if pass</text>
+      <!-- Arrow guardrail -> razorpay -->
+      <line x1="615" y1="175" x2="646" y2="148" stroke="#2e7d32" stroke-width="2" marker-end="url(#arr-s)"/>
+      <text x="637" y="175" text-anchor="middle" fill="#2e7d32" font-size="11" font-weight="600">PASS</text>
 
-      <!-- SQLITE / AUDIT -->
-      <rect x="472" y="340" width="130" height="52" rx="8" fill="#f4f8ff" stroke="#3a6ea5" stroke-width="1.5"/>
-      <text x="537" y="363" text-anchor="middle" font-weight="600" fill="#3a6ea5" font-size="12">SQLite DB</text>
-      <text x="537" y="380" text-anchor="middle" fill="#888" font-size="11">mandate + audit_log</text>
+      <!-- REJECTED -->
+      <rect x="648" y="210" width="100" height="52" rx="10" fill="#fff3f2" stroke="#c0392b" stroke-width="2"/>
+      <text x="698" y="233" text-anchor="middle" font-weight="700" fill="#c0392b" font-size="13">BLOCKED</text>
+      <text x="698" y="251" text-anchor="middle" fill="#888" font-size="11">with reason</text>
 
-      <!-- Arrow guardrail -> DB -->
-      <line x1="537" y1="310" x2="537" y2="338" stroke="#3a6ea5" stroke-width="1.5" marker-end="url(#arr-g)"/>
-      <text x="560" y="328" fill="#888" font-size="10">every verdict</text>
+      <line x1="615" y1="225" x2="646" y2="236" stroke="#c0392b" stroke-width="2" marker-end="url(#arr-s)"/>
+      <text x="635" y="222" text-anchor="middle" fill="#c0392b" font-size="11" font-weight="600">FAIL</text>
 
-      <!-- KEYS -->
-      <rect x="155" y="340" width="110" height="52" rx="8" fill="#fafafa" stroke="#888" stroke-width="1.5" stroke-dasharray="4,2"/>
-      <text x="210" y="363" text-anchor="middle" font-weight="600" fill="#555" font-size="12">keys.py</text>
-      <text x="210" y="380" text-anchor="middle" fill="#888" font-size="11">Ed25519 keypair</text>
+      <!-- DB -->
+      <rect x="460" y="330" width="155" height="52" rx="10" fill="#f4f8ff" stroke="#3a6ea5" stroke-width="2"/>
+      <text x="537" y="354" text-anchor="middle" font-weight="700" fill="#3a6ea5" font-size="13">Audit Log (DB)</text>
+      <text x="537" y="372" text-anchor="middle" fill="#888" font-size="11">every verdict recorded</text>
 
-      <!-- Arrow keys -> guardrail (verify) -->
-      <path d="M 265 366 Q 400 410 471 310" fill="none" stroke="#888" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arr-g)"/>
-      <text x="370" y="410" text-anchor="middle" fill="#888" font-size="10">public key (verify)</text>
+      <line x1="537" y1="302" x2="537" y2="328" stroke="#3a6ea5" stroke-width="1.5" marker-end="url(#arr-g)"/>
 
-      <!-- Arrow keys -> mandate (sign) -->
-      <path d="M 210 340 L 210 248" fill="none" stroke="#888" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arr-g)"/>
-      <text x="225" y="295" fill="#888" font-size="10">sign</text>
-
-      <!-- REJECTED label -->
-      <text x="425" y="320" text-anchor="middle" fill="#c0392b" font-size="11" font-weight="600">REJECTED</text>
-      <text x="425" y="335" text-anchor="middle" fill="#888" font-size="10">with reason</text>
-      <path d="M 537 310 Q 480 350 450 330" fill="none" stroke="#c0392b" stroke-width="1.2" stroke-dasharray="3,2"/>
-
-      <!-- Title -->
-      <text x="380" y="30" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="16" font-weight="700" fill="#c0392b">SENTINEL-AP2 · Autonomous Payment Guardrail</text>
-      <text x="380" y="52" text-anchor="middle" font-size="12" fill="#888">Fail-closed middleware: 8 checks, Ed25519 signatures, at-most-once payment semantics</text>
-      <line x1="80" y1="68" x2="680" y2="68" stroke="#e2e0dc" stroke-width="1"/>
-      <text x="380" y="84" text-anchor="middle" font-size="11" fill="#aaa">BuyerAgent → FastAPI → Guardrail (8 checks) → Razorpay → SQLite</text>
+      <!-- KEY NOTE -->
+      <rect x="10" y="330" width="430" height="52" rx="10" fill="#fffbf5" stroke="#e67e22" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="225" y="352" text-anchor="middle" font-weight="600" fill="#e67e22" font-size="12">Key idea: mandate is marked CONSUMED before payment is made</text>
+      <text x="225" y="370" text-anchor="middle" fill="#888" font-size="11">→ even if Razorpay crashes, you can't pay twice (at-most-once guarantee)</text>
     </svg>
 
     <div class="legend">
@@ -300,7 +309,7 @@ h1 {
 <!-- ===== DATA ANALYST AGENT ===== -->
 <div id="panel-analyst" class="panel">
   <div class="diagram-card">
-    <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" font-family="Inter,system-ui,sans-serif" font-size="13">
+    <svg viewBox="0 0 760 390" xmlns="http://www.w3.org/2000/svg" font-family="Inter,system-ui,sans-serif" font-size="13">
       <defs>
         <marker id="arr-a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
           <polygon points="0 0,8 3,0 6" fill="#1a6b8a"/>
@@ -310,83 +319,74 @@ h1 {
         </marker>
       </defs>
 
-      <!-- UPLOAD -->
-      <rect x="20" y="170" width="90" height="52" rx="8" fill="#f0f8ff" stroke="#1a6b8a" stroke-width="1.5"/>
-      <text x="65" y="192" text-anchor="middle" font-weight="600" fill="#1a6b8a" font-size="12">CSV Upload</text>
-      <text x="65" y="209" text-anchor="middle" fill="#888" font-size="11">≤5 MB / 50k rows</text>
+      <!-- Title -->
+      <text x="380" y="28" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="17" font-weight="700" fill="#1a6b8a">Data Analyst Agent · Two-Agent Pipeline</text>
+      <text x="380" y="50" text-anchor="middle" font-size="12" fill="#888">Upload a CSV → AI finds patterns → second AI checks them → show only trusted insights</text>
 
-      <!-- SUMMARIZER -->
-      <rect x="155" y="155" width="110" height="82" rx="8" fill="#f0f8ff" stroke="#1a6b8a" stroke-width="1.5"/>
-      <text x="210" y="176" text-anchor="middle" font-weight="600" fill="#1a6b8a" font-size="12">Summariser</text>
-      <text x="210" y="193" text-anchor="middle" fill="#888" font-size="11">build_data_summary()</text>
-      <text x="210" y="210" text-anchor="middle" fill="#888" font-size="10">stats + top cats</text>
-      <text x="210" y="224" text-anchor="middle" fill="#888" font-size="10">+ sample rows</text>
+      <!-- Step labels row -->
+      <text x="55"  y="82" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 1</text>
+      <text x="185" y="82" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 2</text>
+      <text x="340" y="82" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 3 — LLM #1</text>
+      <text x="510" y="82" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 4 — LLM #2</text>
+      <text x="672" y="82" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 5</text>
 
-      <line x1="110" y1="196" x2="153" y2="196" stroke="#1a6b8a" stroke-width="1.5" marker-end="url(#arr-a)"/>
+      <!-- CSV -->
+      <rect x="10" y="95" width="90" height="62" rx="10" fill="#f0f8ff" stroke="#1a6b8a" stroke-width="2"/>
+      <text x="55" y="121" text-anchor="middle" font-weight="700" fill="#1a6b8a" font-size="13">CSV File</text>
+      <text x="55" y="140" text-anchor="middle" fill="#888" font-size="11">your data</text>
+      <text x="55" y="154" text-anchor="middle" fill="#888" font-size="11">≤5 MB</text>
+
+      <!-- SUMMARISE -->
+      <rect x="135" y="95" width="100" height="62" rx="10" fill="#f0f8ff" stroke="#1a6b8a" stroke-width="2"/>
+      <text x="185" y="118" text-anchor="middle" font-weight="700" fill="#1a6b8a" font-size="13">Summarise</text>
+      <text x="185" y="136" text-anchor="middle" fill="#888" font-size="11">stats + counts</text>
+      <text x="185" y="150" text-anchor="middle" fill="#888" font-size="11">(not raw rows)</text>
+
+      <line x1="100" y1="126" x2="133" y2="126" stroke="#1a6b8a" stroke-width="2" marker-end="url(#arr-a)"/>
 
       <!-- INSIGHT AGENT -->
-      <rect x="315" y="130" width="120" height="105" rx="8" fill="#e8f4f8" stroke="#1a6b8a" stroke-width="2"/>
-      <text x="375" y="152" text-anchor="middle" font-weight="700" fill="#1a6b8a" font-size="12">Insight Agent</text>
-      <text x="375" y="168" text-anchor="middle" fill="#888" font-size="11">LLM Call #1</text>
-      <text x="375" y="186" text-anchor="middle" fill="#1a6b8a" font-size="10">generate_insights()</text>
-      <text x="375" y="202" text-anchor="middle" fill="#888" font-size="10">3–5 candidate insights</text>
-      <text x="375" y="219" text-anchor="middle" fill="#888" font-size="10">JSON schema enforced</text>
+      <rect x="273" y="95" width="134" height="62" rx="10" fill="#e8f4f8" stroke="#1a6b8a" stroke-width="2.5"/>
+      <text x="340" y="118" text-anchor="middle" font-weight="700" fill="#1a6b8a" font-size="13">Insight Agent</text>
+      <text x="340" y="136" text-anchor="middle" fill="#1a6b8a" font-size="11">finds 3–5 patterns</text>
+      <text x="340" y="150" text-anchor="middle" fill="#888" font-size="11">outputs JSON</text>
 
-      <line x1="265" y1="196" x2="313" y2="196" stroke="#1a6b8a" stroke-width="1.5" marker-end="url(#arr-a)"/>
-      <text x="289" y="190" text-anchor="middle" fill="#888" font-size="10">summary</text>
+      <line x1="235" y1="126" x2="271" y2="126" stroke="#1a6b8a" stroke-width="2" marker-end="url(#arr-a)"/>
+      <text x="253" y="118" text-anchor="middle" fill="#888" font-size="10">summary</text>
 
       <!-- CRITIC AGENT -->
-      <rect x="315" y="265" width="120" height="105" rx="8" fill="#fff3f2" stroke="#c0392b" stroke-width="2"/>
-      <text x="375" y="287" text-anchor="middle" font-weight="700" fill="#c0392b" font-size="12">Critic Agent</text>
-      <text x="375" y="303" text-anchor="middle" fill="#888" font-size="11">LLM Call #2</text>
-      <text x="375" y="321" text-anchor="middle" fill="#c0392b" font-size="10">review_insights()</text>
-      <text x="375" y="337" text-anchor="middle" fill="#888" font-size="10">approve / downgrade</text>
-      <text x="375" y="353" text-anchor="middle" fill="#888" font-size="10">/ reject each</text>
+      <rect x="443" y="95" width="134" height="62" rx="10" fill="#fff3f2" stroke="#c0392b" stroke-width="2.5"/>
+      <text x="510" y="118" text-anchor="middle" font-weight="700" fill="#c0392b" font-size="13">Critic Agent</text>
+      <text x="510" y="136" text-anchor="middle" fill="#c0392b" font-size="11">checks each one</text>
+      <text x="510" y="150" text-anchor="middle" fill="#888" font-size="11">approve/drop/lower</text>
 
-      <!-- Arrow insight -> critic -->
-      <line x1="375" y1="235" x2="375" y2="263" stroke="#888" stroke-width="1.5" marker-end="url(#arr-a)"/>
-      <text x="395" y="253" fill="#888" font-size="10">candidates</text>
+      <line x1="407" y1="126" x2="441" y2="126" stroke="#1a6b8a" stroke-width="2" marker-end="url(#arr-a)"/>
+      <text x="424" y="118" text-anchor="middle" fill="#888" font-size="10">candidates</text>
 
-      <!-- Also summary -> critic -->
-      <path d="M 265 215 Q 265 318 313 318" fill="none" stroke="#888" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#arr-a)"/>
-      <text x="260" y="280" fill="#888" font-size="10" text-anchor="middle">summary</text>
-      <text x="260" y="293" fill="#888" font-size="10" text-anchor="middle">(for validation)</text>
+      <!-- UI -->
+      <rect x="618" y="95" width="130" height="62" rx="10" fill="#e8f8ee" stroke="#2e7d32" stroke-width="2"/>
+      <text x="683" y="118" text-anchor="middle" font-weight="700" fill="#2e7d32" font-size="13">Dashboard</text>
+      <text x="683" y="136" text-anchor="middle" fill="#888" font-size="11">trusted insights</text>
+      <text x="683" y="150" text-anchor="middle" fill="#888" font-size="11">+ confidence %</text>
 
-      <!-- MERGE -->
-      <rect x="490" y="195" width="100" height="70" rx="8" fill="#f4f4f4" stroke="#888" stroke-width="1.5"/>
-      <text x="540" y="218" text-anchor="middle" font-weight="600" fill="#444" font-size="12">Merge</text>
-      <text x="540" y="234" text-anchor="middle" fill="#888" font-size="11">merge_insights_</text>
-      <text x="540" y="249" text-anchor="middle" fill="#888" font-size="11">with_reviews()</text>
+      <line x1="577" y1="126" x2="616" y2="126" stroke="#2e7d32" stroke-width="2" marker-end="url(#arr-a)"/>
+      <text x="597" y="118" text-anchor="middle" fill="#2e7d32" font-size="10">approved</text>
 
-      <!-- Arrows -> merge -->
-      <line x1="435" y1="183" x2="488" y2="230" stroke="#1a6b8a" stroke-width="1.5" marker-end="url(#arr-a)"/>
-      <line x1="435" y1="318" x2="488" y2="248" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arr-r)"/>
+      <!-- DROPPED -->
+      <rect x="443" y="195" width="134" height="52" rx="10" fill="#fff3f2" stroke="#c0392b" stroke-width="1.5"/>
+      <text x="510" y="218" text-anchor="middle" font-weight="700" fill="#c0392b" font-size="13">DROPPED</text>
+      <text x="510" y="236" text-anchor="middle" fill="#888" font-size="11">weak/unsupported insights</text>
+      <line x1="510" y1="157" x2="510" y2="193" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-r)"/>
 
-      <!-- STREAMLIT UI -->
-      <rect x="640" y="195" width="100" height="70" rx="8" fill="#e8f8ee" stroke="#2e7d32" stroke-width="1.5"/>
-      <text x="690" y="218" text-anchor="middle" font-weight="600" fill="#2e7d32" font-size="12">Streamlit UI</text>
-      <text x="690" y="234" text-anchor="middle" fill="#888" font-size="11">final insights</text>
-      <text x="690" y="249" text-anchor="middle" fill="#888" font-size="11">+ confidence</text>
+      <!-- WHY TWO AGENTS box -->
+      <rect x="10" y="195" width="410" height="80" rx="10" fill="#fffbf5" stroke="#e67e22" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="215" y="218" text-anchor="middle" font-weight="700" fill="#e67e22" font-size="13">Why two separate AI calls?</text>
+      <text x="215" y="238" text-anchor="middle" fill="#888" font-size="12">One AI grading its own work = biased (like marking your own exam).</text>
+      <text x="215" y="256" text-anchor="middle" fill="#888" font-size="12">The critic starts fresh with zero context — a real independent check.</text>
 
-      <line x1="590" y1="230" x2="638" y2="230" stroke="#888" stroke-width="1.5" marker-end="url(#arr-a)"/>
-      <text x="614" y="223" text-anchor="middle" fill="#888" font-size="10">approved</text>
-
-      <!-- REJECTED box -->
-      <rect x="490" y="335" width="100" height="40" rx="8" fill="#fff3f2" stroke="#c0392b" stroke-width="1"/>
-      <text x="540" y="352" text-anchor="middle" fill="#c0392b" font-size="11" font-weight="600">DROPPED</text>
-      <text x="540" y="366" text-anchor="middle" fill="#888" font-size="10">rejected insights</text>
-      <line x1="540" y1="265" x2="540" y2="333" stroke="#c0392b" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#arr-r)"/>
-
-      <!-- CONFIG band -->
-      <rect x="20" y="330" width="260" height="52" rx="8" fill="#f9f7f5" stroke="#c8c4be" stroke-width="1" stroke-dasharray="4,2"/>
-      <text x="150" y="352" text-anchor="middle" font-weight="600" fill="#888" font-size="11">config.py limits</text>
-      <text x="150" y="369" text-anchor="middle" fill="#aaa" font-size="10">5MB · 50k rows · 15 req/session · 3 providers</text>
-
-      <!-- Title -->
-      <text x="380" y="30" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="16" font-weight="700" fill="#1a6b8a">Data Analyst Agent · Two-Agent Pipeline</text>
-      <text x="380" y="52" text-anchor="middle" font-size="12" fill="#888">Insight agent generates; critic agent validates — separated to prevent self-critique bias</text>
-      <line x1="80" y1="68" x2="680" y2="68" stroke="#e2e0dc" stroke-width="1"/>
-      <text x="380" y="84" text-anchor="middle" font-size="11" fill="#aaa">CSV → Summarise → LLM #1 (insight) → LLM #2 (critic) → Merge → UI</text>
+      <!-- PROVIDERS -->
+      <rect x="10" y="300" width="738" height="52" rx="10" fill="#f4f8ff" stroke="#3a6ea5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="379" y="323" text-anchor="middle" font-weight="700" fill="#3a6ea5" font-size="13">Works with any LLM provider — same pipeline, swap one env var</text>
+      <text x="379" y="341" text-anchor="middle" fill="#888" font-size="12">Claude (paid API)   ·   Ollama (free, runs locally)   ·   Groq (free, runs in cloud)</text>
     </svg>
 
     <div class="legend">
@@ -412,7 +412,7 @@ h1 {
 <!-- ===== CREDIT RISK ENGINE ===== -->
 <div id="panel-credit" class="panel">
   <div class="diagram-card">
-    <svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg" font-family="Inter,system-ui,sans-serif" font-size="13">
+    <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" font-family="Inter,system-ui,sans-serif" font-size="13">
       <defs>
         <marker id="arr-c" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
           <polygon points="0 0,8 3,0 6" fill="#2e7d32"/>
@@ -422,98 +422,78 @@ h1 {
         </marker>
       </defs>
 
-      <!-- GENERATE DATA -->
-      <rect x="20" y="80" width="110" height="62" rx="8" fill="#f0fff4" stroke="#2e7d32" stroke-width="1.5"/>
-      <text x="75" y="102" text-anchor="middle" font-weight="600" fill="#2e7d32" font-size="12">generate_data.py</text>
-      <text x="75" y="119" text-anchor="middle" fill="#888" font-size="11">5000 synthetic</text>
-      <text x="75" y="133" text-anchor="middle" fill="#888" font-size="11">applicants</text>
+      <!-- Title -->
+      <text x="380" y="28" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="17" font-weight="700" fill="#2e7d32">Credit Risk Engine · ML Pipeline</text>
+      <text x="380" y="50" text-anchor="middle" font-size="12" fill="#888">Can behavioral data approve people a credit score would reject?</text>
+
+      <!-- Step labels -->
+      <text x="65"  y="82" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 1</text>
+      <text x="210" y="82" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 2</text>
+      <text x="390" y="82" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 3</text>
+      <text x="560" y="82" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 4</text>
+      <text x="697" y="82" text-anchor="middle" font-size="10" fill="#aaa" font-weight="600">STEP 5</text>
+
+      <!-- GENERATE -->
+      <rect x="10" y="95" width="110" height="72" rx="10" fill="#f0fff4" stroke="#2e7d32" stroke-width="2"/>
+      <text x="65" y="118" text-anchor="middle" font-weight="700" fill="#2e7d32" font-size="13">Make Data</text>
+      <text x="65" y="136" text-anchor="middle" fill="#888" font-size="11">5 000 synthetic</text>
+      <text x="65" y="150" text-anchor="middle" fill="#888" font-size="11">loan applicants</text>
+      <text x="65" y="161" text-anchor="middle" fill="#2e7d32" font-size="10">generate_data.py</text>
 
       <!-- TRAIN -->
-      <rect x="175" y="55" width="130" height="210" rx="8" fill="#f0fff4" stroke="#2e7d32" stroke-width="2"/>
-      <text x="240" y="78" text-anchor="middle" font-weight="700" fill="#2e7d32" font-size="12">train.py</text>
-      <text x="240" y="96" text-anchor="middle" fill="#888" font-size="11">3 models × 2 feature sets</text>
-      <line x1="185" y1="104" x2="295" y2="104" stroke="#2e7d32" stroke-width="0.8" stroke-dasharray="3,2"/>
-      <text x="240" y="122" text-anchor="middle" fill="#888" font-size="11" font-weight="500">Traditional features</text>
-      <text x="240" y="137" text-anchor="middle" fill="#888" font-size="10">credit_score, income</text>
-      <text x="240" y="151" text-anchor="middle" fill="#888" font-size="10">existing_debt, loan_amount</text>
-      <line x1="185" y1="162" x2="295" y2="162" stroke="#2e7d32" stroke-width="0.8" stroke-dasharray="3,2"/>
-      <text x="240" y="180" text-anchor="middle" fill="#2e7d32" font-size="11" font-weight="500">+ Behavioral features</text>
-      <text x="240" y="195" text-anchor="middle" fill="#888" font-size="10">payment_consistency %</text>
-      <text x="240" y="209" text-anchor="middle" fill="#888" font-size="10">income_volatility</text>
-      <text x="240" y="223" text-anchor="middle" fill="#888" font-size="10">debt_trend</text>
-      <line x1="185" y1="232" x2="295" y2="232" stroke="#2e7d32" stroke-width="0.8" stroke-dasharray="3,2"/>
-      <text x="240" y="248" text-anchor="middle" fill="#888" font-size="10">scale_pos_weight ~19</text>
-      <text x="240" y="262" text-anchor="middle" fill="#888" font-size="10">eval_metric="aucpr"</text>
+      <rect x="145" y="95" width="130" height="72" rx="10" fill="#f0fff4" stroke="#2e7d32" stroke-width="2.5"/>
+      <text x="210" y="118" text-anchor="middle" font-weight="700" fill="#2e7d32" font-size="13">Train Models</text>
+      <text x="210" y="136" text-anchor="middle" fill="#888" font-size="11">XGBoost · RF · LR</text>
+      <text x="210" y="150" text-anchor="middle" fill="#888" font-size="11">2 feature sets</text>
+      <text x="210" y="161" text-anchor="middle" fill="#2e7d32" font-size="10">train.py</text>
 
-      <line x1="130" y1="111" x2="173" y2="160" stroke="#2e7d32" stroke-width="1.5" marker-end="url(#arr-c)"/>
+      <line x1="120" y1="131" x2="143" y2="131" stroke="#2e7d32" stroke-width="2" marker-end="url(#arr-c)"/>
 
-      <!-- MODELS DIR -->
-      <rect x="358" y="55" width="120" height="118" rx="8" fill="#f4f8ff" stroke="#3a6ea5" stroke-width="1.5"/>
-      <text x="418" y="77" text-anchor="middle" font-weight="600" fill="#3a6ea5" font-size="12">models/</text>
-      <text x="418" y="94" text-anchor="middle" fill="#888" font-size="11">*.joblib</text>
-      <text x="418" y="110" text-anchor="middle" fill="#888" font-size="11">XGBoost + RF + LR</text>
-      <line x1="368" y1="118" x2="468" y2="118" stroke="#3a6ea5" stroke-width="0.8" stroke-dasharray="3,2"/>
-      <text x="418" y="134" text-anchor="middle" fill="#888" font-size="10">metrics.csv</text>
-      <text x="418" y="149" text-anchor="middle" fill="#888" font-size="10">best_models.json</text>
-      <text x="418" y="164" text-anchor="middle" fill="#888" font-size="10">feature_sets.json</text>
+      <!-- MODELS -->
+      <rect x="300" y="95" width="175" height="72" rx="10" fill="#f4f8ff" stroke="#3a6ea5" stroke-width="2"/>
+      <text x="387" y="118" text-anchor="middle" font-weight="700" fill="#3a6ea5" font-size="13">Saved Models</text>
+      <text x="387" y="136" text-anchor="middle" fill="#888" font-size="11">Traditional only</text>
+      <text x="387" y="150" text-anchor="middle" fill="#2e7d32" font-size="11">Traditional + Behavioral ★</text>
+      <text x="387" y="161" text-anchor="middle" fill="#888" font-size="10">models/*.joblib</text>
 
-      <line x1="305" y1="160" x2="356" y2="130" stroke="#2e7d32" stroke-width="1.5" marker-end="url(#arr-c)"/>
+      <line x1="275" y1="131" x2="298" y2="131" stroke="#2e7d32" stroke-width="2" marker-end="url(#arr-c)"/>
 
-      <!-- UTILS -->
-      <rect x="358" y="205" width="120" height="88" rx="8" fill="#fff9f0" stroke="#e67e22" stroke-width="1.5"/>
-      <text x="418" y="227" text-anchor="middle" font-weight="600" fill="#e67e22" font-size="12">utils.py</text>
-      <text x="418" y="244" text-anchor="middle" fill="#888" font-size="11">load_model()</text>
-      <text x="418" y="260" text-anchor="middle" fill="#888" font-size="11">score() → proba</text>
-      <text x="418" y="276" text-anchor="middle" fill="#888" font-size="11">build_explainer() SHAP</text>
-      <text x="418" y="285" text-anchor="middle" fill="#888" font-size="9">single source of truth</text>
+      <!-- SCORE (utils) -->
+      <rect x="500" y="95" width="120" height="72" rx="10" fill="#fff9f0" stroke="#e67e22" stroke-width="2.5"/>
+      <text x="560" y="118" text-anchor="middle" font-weight="700" fill="#e67e22" font-size="13">Score + SHAP</text>
+      <text x="560" y="136" text-anchor="middle" fill="#888" font-size="11">default probability</text>
+      <text x="560" y="150" text-anchor="middle" fill="#888" font-size="11">per-feature reason</text>
+      <text x="560" y="161" text-anchor="middle" fill="#e67e22" font-size="10">utils.py</text>
 
-      <line x1="418" y1="173" x2="418" y2="203" stroke="#e67e22" stroke-width="1.5" marker-end="url(#arr-c)"/>
+      <line x1="475" y1="131" x2="498" y2="131" stroke="#2e7d32" stroke-width="2" marker-end="url(#arr-c)"/>
 
-      <!-- FASTAPI SERVER -->
-      <rect x="533" y="80" width="110" height="82" rx="8" fill="#f4f8ff" stroke="#3a6ea5" stroke-width="1.5"/>
-      <text x="588" y="102" text-anchor="middle" font-weight="600" fill="#3a6ea5" font-size="12">server.py</text>
-      <text x="588" y="119" text-anchor="middle" fill="#888" font-size="11">FastAPI</text>
-      <text x="588" y="136" text-anchor="middle" fill="#888" font-size="10">live scoring + SHAP</text>
-      <text x="588" y="150" text-anchor="middle" fill="#888" font-size="10">auth + rate limit</text>
+      <!-- SHOW -->
+      <rect x="643" y="95" width="107" height="72" rx="10" fill="#e8f8ee" stroke="#2e7d32" stroke-width="2"/>
+      <text x="696" y="115" text-anchor="middle" font-weight="700" fill="#2e7d32" font-size="13">Show Result</text>
+      <text x="696" y="133" text-anchor="middle" fill="#888" font-size="11">React 3D app</text>
+      <text x="696" y="148" text-anchor="middle" fill="#888" font-size="11">Streamlit app</text>
+      <text x="696" y="161" text-anchor="middle" fill="#888" font-size="10">server.py / app.py</text>
 
-      <!-- STREAMLIT APP -->
-      <rect x="533" y="193" width="110" height="82" rx="8" fill="#e8f4f8" stroke="#1a6b8a" stroke-width="1.5"/>
-      <text x="588" y="215" text-anchor="middle" font-weight="600" fill="#1a6b8a" font-size="12">app.py</text>
-      <text x="588" y="232" text-anchor="middle" fill="#888" font-size="11">Streamlit</text>
-      <text x="588" y="249" text-anchor="middle" fill="#888" font-size="10">6 tabs: score / compare</text>
-      <text x="588" y="263" text-anchor="middle" fill="#888" font-size="10">/ SHAP / override</text>
+      <line x1="620" y1="131" x2="641" y2="131" stroke="#2e7d32" stroke-width="2" marker-end="url(#arr-c)"/>
 
-      <!-- arrows utils -> server and app -->
-      <line x1="478" y1="235" x2="531" y2="175" stroke="#888" stroke-width="1.5" marker-end="url(#arr-g2)"/>
-      <line x1="478" y1="249" x2="531" y2="249" stroke="#888" stroke-width="1.5" marker-end="url(#arr-g2)"/>
+      <!-- FEATURE SETS explanation -->
+      <rect x="10" y="200" width="460" height="90" rx="10" fill="#fffbf5" stroke="#e67e22" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="235" y="222" text-anchor="middle" font-weight="700" fill="#e67e22" font-size="13">The Core Thesis — Why Two Feature Sets?</text>
+      <text x="235" y="243" text-anchor="middle" fill="#888" font-size="12">Traditional: credit score, income, debt → AUC-PR 0.52</text>
+      <text x="235" y="261" text-anchor="middle" fill="#2e7d32" font-size="12" font-weight="600">+ Behavioral: payment history, income stability, debt trend → AUC-PR 0.67 ★</text>
+      <text x="235" y="279" text-anchor="middle" fill="#888" font-size="11">Thin-file borrowers (no credit history) benefit most from behavioral signals</text>
 
-      <!-- AUTH -->
-      <rect x="533" y="306" width="110" height="62" rx="8" fill="#fff3f2" stroke="#c0392b" stroke-width="1.5"/>
-      <text x="588" y="328" text-anchor="middle" font-weight="600" fill="#c0392b" font-size="12">auth.py</text>
-      <text x="588" y="345" text-anchor="middle" fill="#888" font-size="11">HMAC-SHA256 token</text>
-      <text x="588" y="360" text-anchor="middle" fill="#888" font-size="10">role in token, not body</text>
-      <line x1="588" y1="275" x2="588" y2="304" stroke="#c0392b" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#arr-g2)"/>
+      <!-- SHAP explanation -->
+      <rect x="490" y="200" width="260" height="90" rx="10" fill="#f4f8ff" stroke="#3a6ea5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="620" y="222" text-anchor="middle" font-weight="700" fill="#3a6ea5" font-size="13">SHAP = "Why this score?"</text>
+      <text x="620" y="243" text-anchor="middle" fill="#888" font-size="12">Each feature gets a contribution value</text>
+      <text x="620" y="261" text-anchor="middle" fill="#888" font-size="12">e.g. "payment history → −8% risk"</text>
+      <text x="620" y="279" text-anchor="middle" fill="#888" font-size="11">Makes the model explainable to a loan officer</text>
 
-      <!-- REACT FRONTEND -->
-      <rect x="660" y="130" width="90" height="62" rx="8" fill="#f9f4ff" stroke="#7b2d8b" stroke-width="1.5"/>
-      <text x="705" y="152" text-anchor="middle" font-weight="600" fill="#7b2d8b" font-size="12">React app</text>
-      <text x="705" y="169" text-anchor="middle" fill="#888" font-size="11">3D viz (Three.js)</text>
-      <text x="705" y="183" text-anchor="middle" fill="#888" font-size="10">→ server.py</text>
-
-      <line x1="643" y1="140" x2="658" y2="155" stroke="#888" stroke-width="1.5" marker-end="url(#arr-g2)"/>
-
-      <!-- SHAP EXPLANATION -->
-      <rect x="20" y="310" width="310" height="80" rx="8" fill="#fff9f0" stroke="#e67e22" stroke-width="1.5"/>
-      <text x="175" y="333" text-anchor="middle" font-weight="600" fill="#e67e22" font-size="12">SHAP Explanations (per applicant)</text>
-      <text x="175" y="351" text-anchor="middle" fill="#888" font-size="11">TreeExplainer (RF/XGBoost) · model-agnostic (LR)</text>
-      <text x="175" y="367" text-anchor="middle" fill="#888" font-size="11">Probability space → "+5% default risk per feature"</text>
-      <text x="175" y="380" text-anchor="middle" fill="#2e7d32" font-size="10">behavioral AUC-PR > traditional AUC-PR ← the thesis result</text>
-
-      <path d="M 418 293 Q 350 340 332 350" fill="none" stroke="#e67e22" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#arr-g2)"/>
-
-      <!-- Title -->
-      <text x="380" y="22" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="16" font-weight="700" fill="#2e7d32">Credit Risk Engine · ML Pipeline</text>
-      <text x="380" y="42" text-anchor="middle" font-size="12" fill="#888">Traditional vs behavioral features; SHAP explainability; decision-flip thesis</text>
+      <!-- KEY NUMBERS row -->
+      <rect x="10" y="318" width="738" height="58" rx="10" fill="#f0fff4" stroke="#2e7d32" stroke-width="1.5"/>
+      <text x="379" y="340" text-anchor="middle" font-weight="700" fill="#2e7d32" font-size="13">Key Engineering Decisions</text>
+      <text x="379" y="362" text-anchor="middle" fill="#888" font-size="12">scale_pos_weight≈19 (handles 95:5 imbalance)   ·   AUC-PR not accuracy   ·   StandardScaler inside Pipeline (no data leakage)   ·   stratify=y split</text>
     </svg>
 
     <div class="legend">
